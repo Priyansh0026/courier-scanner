@@ -43,7 +43,9 @@ app.use(
                       origin.startsWith('https://127.0.0.1:') || 
                       origin.includes('192.168.') || 
                       origin.includes('10.') || 
-                      origin.includes('172.');
+                      origin.includes('172.') ||
+                      origin.includes('onrender.com') ||
+                      (process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.split(',').includes(origin));
       if (isLocal) {
         return callback(null, true);
       }
