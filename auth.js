@@ -1,5 +1,6 @@
 // Global state variables
-const API_BASE = (window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
+const API_BASE = isLocalhost ? ((window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000') : '';
 
 // Helper to verify JWT expiration client-side
 function isTokenExpired(token) {

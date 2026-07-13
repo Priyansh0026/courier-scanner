@@ -145,7 +145,8 @@ async function apiFetch(url, options = {}) {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const API_BASE = (window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000';
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
+  const API_BASE = isLocalhost ? ((window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000') : '';
   
   return fetch(`${API_BASE}${url}`, {
     ...options,
@@ -1366,7 +1367,8 @@ function renderCharts() {
 // Owner Authentication Logic
 function setupAuth() {
   const logoutBtn = document.getElementById('btn-logout');
-  const API_BASE = (window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000';
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
+  const API_BASE = isLocalhost ? ((window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000') : '';
 
   // Check if session token exists
   const checkSession = async () => {
