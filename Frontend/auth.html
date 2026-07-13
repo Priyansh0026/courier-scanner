@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JCMS - Secure Authentication Portal</title>
+  <meta name="description" content="Secure owner and operator gateway for Jain Courier Management System (JCMS). Premium auth module.">
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main Portal Container -->
+  <div class="auth-portal-wrapper">
+    
+    <!-- Left Decorative Panel (Branding & Illustrations) -->
+    <div class="brand-panel">
+      <!-- Live Map Background (SVG Nodes network) -->
+      <div class="live-map-bg">
+        <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" class="map-svg-element">
+          <!-- Dot grid representing map nodes -->
+          <circle cx="50" cy="100" r="2" fill="#ffffff" opacity="0.1" />
+          <circle cx="150" cy="80" r="2" fill="#ffffff" opacity="0.1" />
+          <circle cx="300" cy="40" r="2" fill="#ffffff" opacity="0.1" />
+          <circle cx="80" cy="250" r="2" fill="#ffffff" opacity="0.1" />
+          <circle cx="320" cy="280" r="2" fill="#ffffff" opacity="0.1" />
+          
+          <path d="M80 250 L200 80 L300 140" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" stroke-dasharray="4 4" />
+          <path d="M100 150 L220 300 L350 250" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" stroke-dasharray="4 4" />
+          <path class="glowing-line" d="M50 100 L150 180 L320 280" stroke="var(--color-accent)" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div class="brand-top-text">
+        <span class="brand-badge-status">JCMS LIVE ENGINE</span>
+        <h3>Intelligent Routing System</h3>
+      </div>
+
+      <div class="animation-container">
+        <!-- Animated Truck -->
+        <div class="animated-truck-wrapper">
+          <svg class="truck-svg" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="10" width="70" height="32" rx="4" fill="#ffffff" />
+            <path d="M95 20h15l10 10v12h-25V20z" fill="var(--color-accent)" />
+            <rect x="99" y="24" width="10" height="10" rx="2" fill="#1e293b" opacity="0.15" />
+            
+            <g class="wheel wheel-left">
+              <circle cx="45" cy="46" r="8" fill="#0f172a" />
+              <circle cx="45" cy="46" r="3" fill="#cbd5e1" />
+              <line x1="45" y1="38" x2="45" y2="54" stroke="#cbd5e1" stroke-width="1" />
+              <line x1="37" y1="46" x2="53" y2="46" stroke="#cbd5e1" stroke-width="1" />
+            </g>
+            <g class="wheel wheel-right">
+              <circle cx="85" cy="46" r="8" fill="#0f172a" />
+              <circle cx="85" cy="46" r="3" fill="#cbd5e1" />
+              <line x1="85" y1="38" x2="85" y2="54" stroke="#cbd5e1" stroke-width="1" />
+              <line x1="77" y1="46" x2="93" y2="46" stroke="#cbd5e1" stroke-width="1" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- Package Tracking Animation (Timeline) -->
+        <div class="transit-timeline">
+          <div class="timeline-step completed">
+            <div class="node-circle">&check;</div>
+            <span>Scanned</span>
+          </div>
+          <div class="timeline-step completed">
+            <div class="node-circle">&check;</div>
+            <span>Dispatched</span>
+          </div>
+          <div class="timeline-step active">
+            <div class="node-circle pulse"></div>
+            <span>In Transit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-footer-text">
+        <span class="brand-tagline-sub">ONE PLATFORM FOR ALL COURIER LOGISTICS</span>
+        <h3>Visibility, Efficiency, Reliability</h3>
+        <p>Jain Courier's Integrated Franchise Management Portal</p>
+        
+        <div class="brand-pill-wrapper" style="display: none;">
+          <a href="#" class="brand-pill-btn" id="btn-brand-pill-toggle">Join Jain Courier Network Register &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Floating Statistics -->
+      <div class="floating-stats-card">
+        <div class="stat-item">
+          <h4>1,240+</h4>
+          <p>Parcels Logged</p>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <h4>99.9%</h4>
+          <p>Accuracy</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Interaction Panel (Forms) -->
+    <div class="form-panel">
+      <div class="blob-1"></div>
+      <div class="blob-2"></div>
+      
+      <div class="panel-header-nav">
+        <div class="logo-wrapper">
+          <div class="logo-icon-circle">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          </div>
+          <span class="logo-brand-text">Jain Courier&reg;</span>
+        </div>
+        <div class="top-nav-links">
+          <a href="#" class="top-nav-link">Contact</a>
+          <span class="nav-sep">|</span>
+          <a href="#" class="top-nav-link">Help</a>
+          <span class="nav-sep">|</span>
+          <a href="#" class="top-nav-link">About</a>
+        </div>
+      </div>
+
+      <div class="form-container-scroll">
+        
+        <!-- ==========================================
+             1. LOGIN CONTAINER
+             ========================================== -->
+        <div id="login-container" class="auth-card active">
+          <div class="card-header text-center">
+            <h2>Welcome Back</h2>
+            <div class="ai-badge-row">
+              <span class="badge-ai"><i data-lucide="cpu" class="ai-icon"></i> AI POWERED COURIER MANAGEMENT</span>
+            </div>
+            <p class="tagline-quote">"Track &bull; Ship &bull; Deliver"</p>
+          </div>
+
+          <form id="form-login" novalidate>
+            <!-- Email/Mobile Field -->
+            <div class="form-group-custom">
+              <label for="login-email-input">Mobile / Email</label>
+              <div class="custom-input-inner">
+                <input type="text" id="login-email-input" placeholder="e.g. 9876543210 or owner@jaincourier.com" autocomplete="username">
+                <i data-lucide="smartphone" class="input-icon-right"></i>
+              </div>
+            </div>
+            <span class="error-msg" id="login-email-error"></span>
+
+            <!-- Password Field -->
+            <div class="form-group-custom">
+              <label for="login-pass-input">Password</label>
+              <div class="custom-input-inner">
+                <input type="password" id="login-pass-input" placeholder="••••••••" autocomplete="current-password">
+                <button type="button" class="btn-toggle-password btn-toggle-password-custom" tabindex="-1">
+                  <i data-lucide="eye" class="eye-open"></i>
+                  <i data-lucide="eye-off" class="eye-closed hidden"></i>
+                </button>
+              </div>
+            </div>
+            <span class="error-msg" id="login-pass-error"></span>
+
+            <div class="form-row-custom">
+              <label class="checkbox-container">
+                <input type="checkbox" id="login-remember-me" checked>
+                <span class="checkmark"></span>
+                Remember me
+              </label>
+              <a href="#" class="form-link" id="btn-forgot-pass-trigger">Forgot?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-login-large" id="btn-login-submit">
+              <span class="btn-text">LOGIN</span>
+              <span class="spinner hidden"></span>
+            </button>
+          </form>
+
+          <div class="auth-redirect-bottom" style="display: none;">
+            <span>New User?</span>
+            <a href="#" id="link-to-register">Create Account &rarr;</a>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             2. REGISTER CONTAINER
+             ========================================== -->
+        <div id="register-container" class="auth-card">
+          <div class="card-header">
+            <h2>Create Owner Account</h2>
+            <p>Complete the OTP verification steps to register your franchise admin account</p>
+          </div>
+
+          <form id="form-register" novalidate>
+            <!-- Name Field -->
+            <div class="form-group">
+              <label for="reg-name-input">Full Name</label>
+              <div class="input-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <input type="text" id="reg-name-input" placeholder="e.g. Vikas Prasad">
+              </div>
+              <span class="error-msg" id="reg-name-error"></span>
+            </div>
+
+            <!-- Mobile Verification Section -->
+            <div class="form-group">
+              <label for="reg-mobile-input">Mobile Number</label>
+              <div class="input-phone-group">
+                <select id="reg-country-code" aria-label="Country Code">
+                  <option value="+91" selected>🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+971">🇦🇪 +971</option>
+                </select>
+                <div class="input-wrapper input-phone-num">
+                  <input type="text" id="reg-mobile-input" placeholder="10-digit number">
+                  
+                  <span class="verify-badge hidden" id="mobile-verify-badge">
+                    <i data-lucide="check-circle-2"></i> Verified
+                  </span>
+                  
+                  <button type="button" class="btn-verify-action" id="btn-send-mobile-otp">
+                    Send OTP
+                  </button>
+                </div>
+              </div>
+              <span class="error-msg" id="reg-mobile-error"></span>
+            </div>
+
+            <!-- Email Verification Section -->
+            <div class="form-group">
+              <label for="reg-email-input">Email Address</label>
+              <div class="input-wrapper">
+                <i data-lucide="mail" class="input-icon"></i>
+                <input type="email" id="reg-email-input" placeholder="owner@jaincourier.com">
+                
+                <span class="verify-badge hidden" id="email-verify-badge">
+                  <i data-lucide="check-circle-2"></i> Verified
+                </span>
+                
+                <button type="button" class="btn-verify-action" id="btn-send-email-otp">
+                  Send OTP
+                </button>
+              </div>
+              <span class="error-msg" id="reg-email-error"></span>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+              <label for="reg-pass-input">Password</label>
+              <div class="input-wrapper">
+                <i data-lucide="lock" class="input-icon"></i>
+                <input type="password" id="reg-pass-input" placeholder="Choose a strong password">
+                <button type="button" class="btn-toggle-password" tabindex="-1">
+                  <i data-lucide="eye" class="eye-open"></i>
+                  <i data-lucide="eye-off" class="eye-closed hidden"></i>
+                </button>
+              </div>
+              
+              <!-- Password Strength Bar Indicator -->
+              <div class="strength-meter">
+                <span class="strength-bar-segment" id="bar-1"></span>
+                <span class="strength-bar-segment" id="bar-2"></span>
+                <span class="strength-bar-segment" id="bar-3"></span>
+                <span class="strength-bar-segment" id="bar-4"></span>
+              </div>
+              <span class="strength-label" id="strength-label">Password Strength: Weak</span>
+
+              <!-- Password Guidelines Requirements -->
+              <div class="password-guidelines">
+                <p class="req-item" id="req-len"><i data-lucide="circle" class="dot"></i> At least 8 characters</p>
+                <p class="req-item" id="req-up"><i data-lucide="circle" class="dot"></i> One uppercase letter (A-Z)</p>
+                <p class="req-item" id="req-low"><i data-lucide="circle" class="dot"></i> One lowercase letter (a-z)</p>
+                <p class="req-item" id="req-num"><i data-lucide="circle" class="dot"></i> One numeric digit (0-9)</p>
+                <p class="req-item" id="req-spec"><i data-lucide="circle" class="dot"></i> One special character (@, $, #, %...)</p>
+              </div>
+              <span class="error-msg" id="reg-pass-error"></span>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="form-group">
+              <label for="reg-confirm-input">Confirm Password</label>
+              <div class="input-wrapper">
+                <i data-lucide="lock-keyhole" class="input-icon"></i>
+                <input type="password" id="reg-confirm-input" placeholder="Re-type password">
+                <button type="button" class="btn-toggle-password" tabindex="-1">
+                  <i data-lucide="eye" class="eye-open"></i>
+                  <i data-lucide="eye-off" class="eye-closed hidden"></i>
+                </button>
+              </div>
+              <span class="error-msg" id="reg-confirm-error"></span>
+            </div>
+
+            <!-- Terms Checkbox -->
+            <div class="form-group terms-wrapper">
+              <label class="checkbox-container">
+                <input type="checkbox" id="reg-terms-check">
+                <span class="checkmark"></span>
+                <span>I agree to the <a href="#" class="form-link">Terms & Conditions</a> and <a href="#" class="form-link">Privacy Policy</a>.</span>
+              </label>
+              <span class="error-msg" id="reg-terms-error"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-register-submit">
+              <span class="btn-text">Register Account</span>
+              <span class="spinner hidden"></span>
+            </button>
+          </form>
+
+          <p class="auth-redirect">Already have an account? <a href="#" id="link-to-login">Sign In</a></p>
+        </div>
+
+        <!-- ==========================================
+             3. FORGOT PASSWORD CONTAINER
+             ========================================== -->
+        <div id="forgot-container" class="auth-card">
+          <div class="card-header">
+            <h2>Reset Password</h2>
+            <p>Enter your registered email address to receive a 6-digit OTP verification code to reset your password</p>
+          </div>
+
+          <!-- Option Selection (Email or Mobile) -->
+          <div id="reset-option-panel">
+            <div class="forgot-option-list" style="display: none;">
+              <label class="forgot-option-card active">
+                <input type="radio" name="forgot-channel" value="email" checked>
+                <div class="f-opt-icon"><i data-lucide="mail"></i></div>
+                <div class="f-opt-text">
+                  <strong>Email Address</strong>
+                  <span>Receive OTP on registered email</span>
+                </div>
+              </label>
+
+              <label class="forgot-option-card">
+                <input type="radio" name="forgot-channel" value="mobile">
+                <div class="f-opt-icon"><i data-lucide="phone"></i></div>
+                <div class="f-opt-text">
+                  <strong>Mobile Number</strong>
+                  <span>Receive OTP on registered phone</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-top: 24px;">
+              <label id="forgot-input-label" for="forgot-dest-input">Registered Email Address</label>
+              <div class="input-wrapper">
+                <i data-lucide="mail" class="input-icon" id="forgot-input-icon"></i>
+                <input type="text" id="forgot-dest-input" placeholder="e.g. owner@jaincourier.com">
+              </div>
+              <span class="error-msg" id="forgot-dest-error"></span>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btn-send-reset-otp">
+              Send Reset OTP
+            </button>
+
+            <button class="btn btn-secondary btn-block" style="margin-top: 12px;" id="btn-back-to-login">
+              Cancel & Go Back
+            </button>
+          </div>
+
+          <!-- New Password Input (Shown after OTP verified) -->
+          <div id="reset-new-password-panel" class="hidden">
+            <form id="form-reset-password" novalidate>
+              <div class="form-group">
+                <label for="reset-pass-input">New Password</label>
+                <div class="input-wrapper">
+                  <i data-lucide="lock" class="input-icon"></i>
+                  <input type="password" id="reset-pass-input" placeholder="Enter new password">
+                  <button type="button" class="btn-toggle-password" tabindex="-1">
+                    <i data-lucide="eye" class="eye-open"></i>
+                    <i data-lucide="eye-off" class="eye-closed hidden"></i>
+                  </button>
+                </div>
+                
+                <!-- Password Strength meter for Reset -->
+                <div class="strength-meter" style="margin-top: 8px;">
+                  <span class="strength-bar-segment" id="r-bar-1"></span>
+                  <span class="strength-bar-segment" id="r-bar-2"></span>
+                  <span class="strength-bar-segment" id="r-bar-3"></span>
+                  <span class="strength-bar-segment" id="r-bar-4"></span>
+                </div>
+                <span class="strength-label" id="r-strength-label">Password Strength: Weak</span>
+                <span class="error-msg" id="reset-pass-error"></span>
+              </div>
+
+              <div class="form-group">
+                <label for="reset-confirm-input">Confirm New Password</label>
+                <div class="input-wrapper">
+                  <i data-lucide="lock-keyhole" class="input-icon"></i>
+                  <input type="password" id="reset-confirm-input" placeholder="Confirm new password">
+                  <button type="button" class="btn-toggle-password" tabindex="-1">
+                    <i data-lucide="eye" class="eye-open"></i>
+                    <i data-lucide="eye-off" class="eye-closed hidden"></i>
+                  </button>
+                </div>
+                <span class="error-msg" id="reset-confirm-error"></span>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="btn-reset-pass-submit">
+                Reset Password
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="auth-panel-footer">
+        <span>&copy; Copyright 2026, Jain Courier Services - All rights reserved.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. REUSABLE OTP MODAL SCREEN
+       ========================================== -->
+  <div class="otp-modal" id="otp-modal">
+    <div class="otp-card">
+      <button class="otp-close" id="btn-otp-close" aria-label="Close modal"><i data-lucide="x"></i></button>
+      
+      <div class="otp-header">
+        <div class="otp-icon-wrapper">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <h2>OTP Verification</h2>
+        <p>Enter the 6-digit verification code sent to:<br><strong id="otp-destination-display">your phone</strong></p>
+      </div>
+
+      <div class="otp-inputs-grid">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 1">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 2">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 3">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 4">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 5">
+        <input type="text" maxlength="1" class="otp-box" aria-label="OTP Digit 6">
+      </div>
+
+      <div class="otp-info-row">
+        <span class="otp-attempts" id="otp-attempts-display">Attempts Left: 5/5</span>
+        <span class="otp-timer" id="otp-timer-display">Resend in 30s</span>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="btn-verify-otp" disabled>
+        Verify Code
+      </button>
+
+      <button class="btn btn-secondary btn-block hidden" style="margin-top: 10px;" id="btn-resend-otp">
+        Resend OTP Code
+      </button>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>
