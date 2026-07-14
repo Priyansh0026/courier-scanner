@@ -850,7 +850,10 @@ function renderLoadTable() {
   tbody.innerHTML = '';
 
   const filteredScans = scans.filter(item => {
-    const matchesSearch = item.trackingId.toLowerCase().includes(searchQuery) || item.id.toLowerCase().includes(searchQuery);
+    const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other' };
+    const matchesSearch = item.trackingId.toLowerCase().includes(searchQuery) || 
+                          item.id.toLowerCase().includes(searchQuery) ||
+                          courier.name.toLowerCase().includes(searchQuery);
     const matchesCourier = courierFilter === 'all' || item.courierId === courierFilter;
     
     let matchesStatus = false;
