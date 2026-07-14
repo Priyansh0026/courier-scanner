@@ -1021,6 +1021,13 @@ function setupManifestGenerator() {
     updateManifestPanel();
   });
 
+  const searchInput = document.getElementById('manifest-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      updateManifestPanel();
+    });
+  }
+
   driverInput.addEventListener('input', () => {
     document.getElementById('pm-driver').textContent = driverInput.value.trim() || 'Pending Details';
   });
@@ -1163,7 +1170,19 @@ function updateManifestPanel() {
   
   document.getElementById('pm-courier').textContent = 'Unified Manifest';
 
-  const available = scans.filter(s => s.status === 'scanned');
+  let available = scans.filter(s => s.status === 'scanned');
+  
+  const searchInput = document.getElementById('manifest-search-input');
+  const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
+  if (searchVal) {
+    available = available.filter(item => {
+      const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦' };
+      return item.trackingId.toLowerCase().includes(searchVal) || 
+             courier.name.toLowerCase().includes(searchVal);
+    });
+  }
+
   countLabel.textContent = available.length;
 
   if (available.length === 0) {
