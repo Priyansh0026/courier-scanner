@@ -685,7 +685,34 @@
       </div>
     </div>
   </div>
+  <!-- Parcel History Timeline Modal -->
+  <div class="modal-backdrop" id="parcel-history-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3><i data-lucide="info"></i> Parcel Lifecycle Tracking</h3>
+        <button class="close-btn" id="btn-close-history">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 15px;">
+        <div style="background-color: var(--card-bg-light); border-radius: 6px; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tracking ID</span>
+            <span id="ph-tracking-id" style="font-family: monospace; font-weight: 700; font-size: 14px; color: var(--color-primary);">123456789</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Courier</span>
+            <span id="ph-courier" style="font-weight: 600; font-size: 13px;">Delhivery</span>
+          </div>
+        </div>
 
+        <div class="timeline-container" id="ph-timeline" style="margin-left: 10px; border-left: 2px solid var(--border-color); padding-left: 20px; position: relative;">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-block" id="btn-close-history-footer">Close</button>
+      </div>
+    </div>
+  </div>
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 

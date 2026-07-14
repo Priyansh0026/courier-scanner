@@ -1630,3 +1630,69 @@ tr:hover td {
 .weight-col {
   display: none !important;
 }
+
+/* Parcel LifeCycle Tracking Timeline */
+.timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+  padding-left: 10px;
+}
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+.timeline-icon {
+  position: absolute;
+  left: -31px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2.5px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  z-index: 2;
+}
+.timeline-item.active .timeline-icon {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+.timeline-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.timeline-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  background-color: var(--card-bg-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  display: inline-block;
+  margin-top: 4px;
+}
+.timeline-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.tracking-cell {
+  cursor: pointer;
+  color: var(--color-primary) !important;
+  font-weight: 700;
+  font-family: monospace;
+}
+.tracking-cell:hover {
+  text-decoration: underline !important;
+}

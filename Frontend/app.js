@@ -907,6 +907,13 @@ function renderLoadTable() {
     });
   });
 
+  document.querySelectorAll('.tracking-cell').forEach(cell => {
+    cell.addEventListener('click', (e) => {
+      const trackingId = cell.textContent.trim();
+      openParcelHistoryModal(trackingId);
+    });
+  });
+
   lucide.createIcons();
 }
 
@@ -2485,5 +2492,115 @@ function setupManifestHistoryFilters() {
     endDate.value = '';
     renderManifestHistoryTable();
   });
+}
+
+// Modal closing event listeners for history log
+document.addEventListener('DOMContentLoaded', () => {
+  const closeHistoryBtn = document.getElementById('btn-close-history');
+  const closeHistoryFooterBtn = document.getElementById('btn-close-history-footer');
+  const historyModal = document.getElementById('parcel-history-modal');
+
+  if (closeHistoryBtn) {
+    closeHistoryBtn.addEventListener('click', () => {
+      historyModal.classList.remove('active');
+    });
+  }
+  if (closeHistoryFooterBtn) {
+    closeHistoryFooterBtn.addEventListener('click', () => {
+      historyModal.classList.remove('active');
+    });
+  }
+});
+
+async function openParcelHistoryModal(trackingId) {
+  const item = scans.find(s => s.trackingId === trackingId);
+  if (!item) return;
+
+  const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦' };
+
+  document.getElementById('ph-tracking-id').textContent = item.trackingId;
+  document.getElementById('ph-courier').textContent = `${courier.logo} ${courier.name}`;
+
+  const timelineContainer = document.getElementById('ph-timeline');
+  timelineContainer.innerHTML = '<div style="color: var(--text-muted); font-size:12px;">Loading tracking logs...</div>';
+
+  const modal = document.getElementById('parcel-history-modal');
+  modal.classList.add('active');
+
+  try {
+    const res = await apiFetch('/api/manifests');
+    const data = await res.json();
+    if (res.ok && data.success) {
+      manifestsHistoryList = data.manifests;
+    }
+  } catch (err) {
+    console.warn('Could not refresh manifest history for tracking:', err);
+  }
+
+  const manifest = manifestsHistoryList.find(m => 
+    m.parcels && m.parcels.some(p => p.trackingId === trackingId)
+  );
+
+  const manifestParcel = manifest ? manifest.parcels.find(p => p.trackingId === trackingId) : null;
+
+  let timelineHTML = '';
+
+  // 1. Initial Scan (Intake)
+  const scanTime = new Date(item.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  timelineHTML += `
+    <div class="timeline-item active">
+      <div class="timeline-icon">📥</div>
+      <div class="timeline-title">Scanner Intake / Scanned</div>
+      <div class="timeline-time">${scanTime}</div>
+      <div class="timeline-desc">Parcel successfully scanned at franchise office. Initial status set to <strong>scanned</strong>.</div>
+    </div>
+  `;
+
+  // 2. Manifest Assign (Dispatched)
+  if (manifest) {
+    const manifestTime = new Date(manifest.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    timelineHTML += `
+      <div class="timeline-item active">
+        <div class="timeline-icon">🏎️</div>
+        <div class="timeline-title">Assigned to Run Sheet (Dispatched)</div>
+        <div class="timeline-time">${manifestTime}</div>
+        <div class="timeline-desc">Parcel assigned to Manifest <strong>${manifest.id}</strong>. Handed over to Pickup Driver <strong>${manifest.driverName || 'N/A'}</strong>.</div>
+      </div>
+    `;
+
+    // 3. Delivery Confirmation
+    const isDelivered = (item.status === 'Delivered' || (manifestParcel && manifestParcel.status === 'Delivered'));
+    if (isDelivered) {
+      const deliveryTimeRaw = item.updatedAt || manifest.updatedAt || new Date().toISOString();
+      const deliveryTime = new Date(deliveryTimeRaw).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      timelineHTML += `
+        <div class="timeline-item active">
+          <div class="timeline-icon">✅</div>
+          <div class="timeline-title">Delivered successfully</div>
+          <div class="timeline-time">${deliveryTime}</div>
+          <div class="timeline-desc">Parcel delivered to the customer. Delivery status updated in run sheet logs.</div>
+        </div>
+      `;
+    } else {
+      timelineHTML += `
+        <div class="timeline-item">
+          <div class="timeline-icon">⏳</div>
+          <div class="timeline-title">Pending Delivery</div>
+          <div class="timeline-desc">Parcel is currently out with driver <strong>${manifest.driverName || 'N/A'}</strong> for delivery.</div>
+        </div>
+      `;
+    }
+  } else {
+    timelineHTML += `
+      <div class="timeline-item">
+        <div class="timeline-icon">⏳</div>
+        <div class="timeline-title">Pending Dispatch</div>
+        <div class="timeline-desc">Parcel is loaded at office and waiting to be added to a manifest run sheet.</div>
+      </div>
+    `;
+  }
+
+  timelineContainer.innerHTML = timelineHTML;
+  lucide.createIcons();
 }
 
