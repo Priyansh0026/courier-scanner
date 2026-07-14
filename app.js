@@ -331,10 +331,15 @@ function manageFocusLock() {
   // Lock function
   function keepFocus() {
     if (isFocusLocked && document.activeElement !== barcodeInput) {
-      // Don't hijack focus if user is editing in a modal or select boxes
-      if (!document.getElementById('edit-modal').classList.contains('active') && 
-          document.activeElement.tagName !== 'SELECT' &&
-          document.activeElement.tagName !== 'TEXTAREA') {
+      // Don't hijack focus if user is editing in a modal, search box, or other inputs
+      const isUserEditing = 
+        document.getElementById('edit-modal').classList.contains('active') ||
+        (document.getElementById('parcel-history-modal') && document.getElementById('parcel-history-modal').classList.contains('active')) ||
+        document.activeElement.tagName === 'SELECT' ||
+        document.activeElement.tagName === 'TEXTAREA' ||
+        (document.activeElement.tagName === 'INPUT' && document.activeElement !== barcodeInput);
+
+      if (!isUserEditing) {
         barcodeInput.focus();
       }
     }
@@ -352,12 +357,16 @@ function manageFocusLock() {
 
   barcodeInput.addEventListener('blur', () => {
     if (isFocusLocked) {
-      // Briefly wait to verify if we moved to something else like a select or modal
+      // Briefly wait to verify if we moved to something else like a select, input or modal
       setTimeout(() => {
-        if (isFocusLocked && 
-            !document.getElementById('edit-modal').classList.contains('active') &&
-            document.activeElement.tagName !== 'SELECT' &&
-            document.activeElement.tagName !== 'TEXTAREA') {
+        const isUserEditing = 
+          document.getElementById('edit-modal').classList.contains('active') ||
+          (document.getElementById('parcel-history-modal') && document.getElementById('parcel-history-modal').classList.contains('active')) ||
+          document.activeElement.tagName === 'SELECT' ||
+          document.activeElement.tagName === 'TEXTAREA' ||
+          (document.activeElement.tagName === 'INPUT' && document.activeElement !== barcodeInput);
+
+        if (isFocusLocked && !isUserEditing) {
           barcodeInput.focus();
         } else {
           focusBanner.classList.add('unfocused');
