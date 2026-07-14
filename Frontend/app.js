@@ -128,6 +128,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render lists and charts
   renderAll();
+
+  // Start background sync polling to keep multiple screens aligned automatically every 8 seconds
+  setInterval(async () => {
+    const isActiveSession = localStorage.getItem('jcms_active_session') === 'true';
+    if (isActiveSession) {
+      try {
+        const res = await apiFetch('/api/scans');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          scans = data.scans;
+          saveData();
+          renderAll();
+        }
+        
+        // Also fetch updated manifest history
+        const mRes = await apiFetch('/api/manifests');
+        const mData = await mRes.json();
+        if (mRes.ok && mData.success) {
+          manifestsHistoryList = mData.manifests;
+          populateDriverFilterOptions();
+          renderManifestHistoryTable();
+        }
+      } catch (e) {
+        console.warn('[JCMS Polling Sync Error]:', e.message);
+      }
+    }
+  }, 8000);
 });
 
 function updateDate() {
@@ -286,6 +313,15 @@ function setupNavigation() {
 
       // Re-trigger layout icons
       lucide.createIcons();
+
+      // Fetch latest state from server instantly on tab switch
+      const isActive = localStorage.getItem('jcms_active_session') === 'true';
+      if (isActive) {
+        loadData();
+        if (tabId === 'manifests') {
+          loadManifestHistory();
+        }
+      }
     });
   });
 }
