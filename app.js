@@ -129,12 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAll();
 });
 
-// Update the display date
 function updateDate() {
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const today = new Date();
-  document.getElementById('current-date').textContent = today.toLocaleDateString('en-US', options);
-  document.getElementById('pm-date').textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const currentDateEl = document.getElementById('current-date');
+  if (currentDateEl) currentDateEl.textContent = today.toLocaleDateString('en-US', options);
+  
+  const pmDateEl = document.getElementById('pm-date');
+  if (pmDateEl) pmDateEl.textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 // Generic API fetch helper with auth header
@@ -1078,9 +1080,16 @@ function setupManifestGenerator() {
     });
   }
 
-  driverInput.addEventListener('input', () => {
-    document.getElementById('pm-driver').textContent = driverInput.value.trim() || 'Pending Details';
-  });
+  if (driverInput) {
+    driverInput.addEventListener('input', () => {
+      const val = driverInput.value.trim() || 'Pending Details';
+      const pmDriver = document.getElementById('pm-driver');
+      if (pmDriver) pmDriver.textContent = val;
+      document.querySelectorAll('.pm-driver-value').forEach(el => {
+        el.textContent = val;
+      });
+    });
+  }
 
   selectAllBtn.addEventListener('click', () => {
     const searchInput = document.getElementById('manifest-search-input');
@@ -1184,9 +1193,13 @@ function setupManifestGenerator() {
       // Disable button immediately to prevent double submissions
       generateBtn.disabled = true;
 
-      const manifestId = document.getElementById('pm-id').textContent;
+      const manifestId = currentManifestId || ('MNF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900));
       const driverName = driverInput ? driverInput.value.trim() : '';
-      const totalWt = parseFloat(document.getElementById('pm-total-wt').textContent) || 0.00;
+      
+      const selectedParcelsForWt = selectedManifestIds
+        .map(id => scans.find(s => s.id === id || s._id === id))
+        .filter(s => s !== undefined && s !== null);
+      const totalWt = selectedParcelsForWt.reduce((acc, s) => acc + (s.weight || 0.00), 0);
 
       const parcels = selectedManifestIds
         .map(id => scans.find(item => item.id === id || item._id === id))
@@ -1284,7 +1297,8 @@ function updateManifestPanel() {
   const countLabel = document.getElementById('available-manifest-count');
   const generateBtn = document.getElementById('btn-generate-manifest');
   
-  document.getElementById('pm-courier').textContent = 'Unified Manifest';
+  const pmCourier = document.getElementById('pm-courier');
+  if (pmCourier) pmCourier.textContent = 'Unified Manifest';
 
   let available = scans.filter(s => s.status === 'scanned');
   
@@ -1428,7 +1442,7 @@ function generateManifestPageHTML(manifestId, dateStr, driverName, parcels, star
       </div>
 
       <div class="manifest-driver-info" style="display: flex; justify-content: space-between; align-items: center;">
-        <p><strong>Pickup Driver:</strong> <span>${driverName || 'Pending Details'}</span></p>
+        <p><strong>Pickup Driver:</strong> <span class="pm-driver-value">${driverName || 'Pending Details'}</span></p>
         <p style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Page ${pageNum} of ${totalPages}</p>
       </div>
 
