@@ -1068,7 +1068,15 @@ function setupManifestGenerator() {
   const courierSelect = document.getElementById('manifest-courier-select');
   const selectAllBtn = document.getElementById('btn-select-all-manifest');
   const generateBtn = document.getElementById('btn-generate-manifest');
+  const printPreviewBtn = document.getElementById('btn-print-manifest-preview');
   const driverInput = document.getElementById('driver-name');
+
+  if (printPreviewBtn) {
+    printPreviewBtn.addEventListener('click', () => {
+      initAudio();
+      window.print();
+    });
+  }
 
   courierSelect.addEventListener('change', () => {
     selectedManifestIds = [];
@@ -1184,7 +1192,11 @@ function setupManifestGenerator() {
         showToast('Selected available up to maximum 30 parcels limit.', 'warning');
       }
     }
-    document.getElementById('btn-generate-manifest').disabled = selectedManifestIds.length === 0;
+    const isSelectionEmpty = selectedManifestIds.length === 0;
+    document.getElementById('btn-generate-manifest').disabled = isSelectionEmpty;
+    if (document.getElementById('btn-print-manifest-preview')) {
+      document.getElementById('btn-print-manifest-preview').disabled = isSelectionEmpty;
+    }
     updatePreviewSheet();
   });
 
@@ -1220,7 +1232,11 @@ function setupManifestGenerator() {
         showToast(`Selected all ${available.length} specific parcels matching filter.`, 'success');
       }
 
-      document.getElementById('btn-generate-manifest').disabled = selectedManifestIds.length === 0;
+      const isSelectionEmpty = selectedManifestIds.length === 0;
+      document.getElementById('btn-generate-manifest').disabled = isSelectionEmpty;
+      if (document.getElementById('btn-print-manifest-preview')) {
+        document.getElementById('btn-print-manifest-preview').disabled = isSelectionEmpty;
+      }
       updatePreviewSheet();
     });
   }
@@ -1284,9 +1300,6 @@ function setupManifestGenerator() {
         console.error('[JCMS Manifest] Save error:', err);
         showToast('Offline mode: Saved locally but server sync failed.', 'warning');
       }
-
-      // Trigger Print
-      window.print();
 
       // Mark packages as 'Pending' locally and save
       selectedManifestIds.forEach(id => {
@@ -1365,6 +1378,9 @@ function updateManifestPanel() {
   if (available.length === 0) {
     container.innerHTML = '<div class="selection-placeholder">No packages currently in "Scanned" status.</div>';
     generateBtn.disabled = true;
+    if (document.getElementById('btn-print-manifest-preview')) {
+      document.getElementById('btn-print-manifest-preview').disabled = true;
+    }
     updatePreviewSheet();
     return;
   }
@@ -1402,7 +1418,11 @@ function updateManifestPanel() {
     container.appendChild(row);
   });
 
-  generateBtn.disabled = selectedManifestIds.length === 0;
+  const isSelectionEmpty = selectedManifestIds.length === 0;
+  generateBtn.disabled = isSelectionEmpty;
+  if (document.getElementById('btn-print-manifest-preview')) {
+    document.getElementById('btn-print-manifest-preview').disabled = isSelectionEmpty;
+  }
   updatePreviewSheet();
 }
 
@@ -1418,7 +1438,11 @@ function toggleManifestSelection(id, checked) {
   } else {
     selectedManifestIds = selectedManifestIds.filter(val => val !== id);
   }
-  document.getElementById('btn-generate-manifest').disabled = selectedManifestIds.length === 0;
+  const isSelectionEmpty = selectedManifestIds.length === 0;
+  document.getElementById('btn-generate-manifest').disabled = isSelectionEmpty;
+  if (document.getElementById('btn-print-manifest-preview')) {
+    document.getElementById('btn-print-manifest-preview').disabled = isSelectionEmpty;
+  }
   updatePreviewSheet();
 }
 

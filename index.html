@@ -398,10 +398,14 @@
                       <div class="selection-placeholder">Loading available packages...</div>
                     </div>
                   </div>
-
-                  <button class="btn btn-primary btn-block" id="btn-generate-manifest" disabled>
-                    <i data-lucide="printer"></i> Create & Print Manifest Sheet
-                  </button>
+                  <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-primary" id="btn-generate-manifest" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
+                      <i data-lucide="save"></i> Create & Save
+                    </button>
+                    <button class="btn btn-success" id="btn-print-manifest-preview" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: var(--success);" disabled>
+                      <i data-lucide="printer"></i> Print Preview
+                    </button>
+                  </div>
                 </div>
               </div>
 
