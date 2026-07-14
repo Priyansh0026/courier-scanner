@@ -1286,7 +1286,7 @@ function updatePreviewSheet() {
       <td style="text-align: center;">${idx + 1}</td>
       <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${item.trackingId}</td>
       <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
-      <td><div class="manifest-checkbox-placeholder"></div></td>
+      <td><div class="manifest-sign-placeholder"></div></td>
       <td class="weight-col">${item.weight.toFixed(2)} kg</td>
     `;
     pmTableBody.appendChild(row);
@@ -2168,7 +2168,7 @@ function reprintHistoricalManifest(manifest) {
       <td style="text-align: center;">${idx + 1}</td>
       <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${p.trackingId}</td>
       <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
-      <td><div class="manifest-checkbox-placeholder"></div></td>
+      <td><div class="manifest-sign-placeholder"></div></td>
       <td>${p.weight.toFixed(2)} kg</td>
     `;
     pmTableBody.appendChild(row);
