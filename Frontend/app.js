@@ -1033,27 +1033,53 @@ function setupManifestGenerator() {
   });
 
   selectAllBtn.addEventListener('click', () => {
-    // Filter ALL packages with status 'scanned' regardless of courierId
-    const available = scans.filter(s => s.status === 'scanned');
+    const searchInput = document.getElementById('manifest-search-input');
+    const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    
+    let available = scans.filter(s => s.status === 'scanned');
+    if (searchVal) {
+      available = available.filter(item => {
+        const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦' };
+        return item.trackingId.toLowerCase().includes(searchVal) || 
+               courier.name.toLowerCase().includes(searchVal);
+      });
+    }
+
     const checkboxes = document.querySelectorAll('.manifest-cb');
     
-    // Toggle all
-    if (selectedManifestIds.length === available.length && available.length <= 30) {
-      // Uncheck all
-      selectedManifestIds = [];
-      checkboxes.forEach(cb => cb.checked = false);
+    // Find how many of the currently filtered available items are already selected
+    const currentlySelectedFiltered = available.filter(s => selectedManifestIds.includes(s.id || s._id));
+    
+    if (currentlySelectedFiltered.length === available.length) {
+      // Unselect only these filtered items
+      const filteredIds = available.map(s => s.id || s._id);
+      selectedManifestIds = selectedManifestIds.filter(id => !filteredIds.includes(id));
+      
+      checkboxes.forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        if (filteredIds.includes(id)) {
+          cb.checked = false;
+        }
+      });
     } else {
-      // Check all (maximum 30)
-      const toSelect = available.slice(0, 30);
-      selectedManifestIds = toSelect.map(s => s.id || s._id);
+      // Select all filtered (max 30 total)
+      const currentTotalCount = selectedManifestIds.length;
+      const remainingSlots = 30 - currentTotalCount;
+      
+      const unselectedFiltered = available.filter(s => !selectedManifestIds.includes(s.id || s._id));
+      const toSelect = unselectedFiltered.slice(0, remainingSlots);
+      
+      toSelect.forEach(s => {
+        selectedManifestIds.push(s.id || s._id);
+      });
       
       checkboxes.forEach(cb => {
         const id = cb.getAttribute('data-id');
         cb.checked = selectedManifestIds.includes(id);
       });
 
-      if (available.length > 30) {
-        showToast('Selected first 30 parcels. Maximum 30 parcels allowed per manifest.', 'warning');
+      if (unselectedFiltered.length > remainingSlots) {
+        showToast('Selected available up to maximum 30 parcels limit.', 'warning');
       }
     }
     document.getElementById('btn-generate-manifest').disabled = selectedManifestIds.length === 0;
