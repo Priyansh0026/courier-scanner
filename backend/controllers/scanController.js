@@ -1,4 +1,5 @@
 const Scan = require('../models/Scan');
+const Manifest = require('../models/Manifest');
 
 /**
  * Fetch all scans logged by the authenticated operator
@@ -8,7 +9,37 @@ const getScans = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    const scans = await Scan.find({ user: userId }).sort({ timestamp: -1 });
+    // 1. Fetch manifests to determine active manifested tracking IDs
+    const manifests = await Manifest.find({ user: userId });
+    const manifestedTrackingIds = new Set();
+    manifests.forEach(m => {
+      if (m.parcels) {
+        m.parcels.forEach(p => {
+          manifestedTrackingIds.add(p.trackingId);
+        });
+      }
+    });
+
+    // 2. Fetch all scans
+    let scans = await Scan.find({ user: userId }).sort({ timestamp: -1 });
+
+    // 3. Find scans marked as Pending or Delivered but not in any manifest (orphaned scans)
+    const orphanedTrackingIds = [];
+    scans.forEach(scan => {
+      if ((scan.status === 'Pending' || scan.status === 'Delivered') && !manifestedTrackingIds.has(scan.trackingId)) {
+        orphanedTrackingIds.push(scan.trackingId);
+      }
+    });
+
+    // 4. Revert orphaned scans back to 'scanned' in database
+    if (orphanedTrackingIds.length > 0) {
+      await Scan.updateMany(
+        { trackingId: { $in: orphanedTrackingIds }, user: userId },
+        { status: 'scanned' }
+      );
+      // Re-fetch scans to ensure consistency in response
+      scans = await Scan.find({ user: userId }).sort({ timestamp: -1 });
+    }
 
     return res.status(200).json({
       success: true,
