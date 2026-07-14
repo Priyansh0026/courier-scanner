@@ -1026,6 +1026,47 @@ function setupManifestGenerator() {
     searchInput.addEventListener('input', () => {
       updateManifestPanel();
     });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const scanValue = searchInput.value.trim();
+        if (!scanValue) return;
+
+        initAudio();
+
+        const item = scans.find(s => s.status === 'scanned' && s.trackingId.toLowerCase() === scanValue.toLowerCase());
+        
+        if (item) {
+          const itemId = item.id || item._id;
+          if (selectedManifestIds.includes(itemId)) {
+            playBeep('duplicate');
+            showToast(`Parcel ${item.trackingId} is already selected.`, 'warning');
+          } else {
+            if (selectedManifestIds.length >= 30) {
+              playBeep('error');
+              showToast('Maximum 30 parcels allowed per manifest.', 'error');
+            } else {
+              selectedManifestIds.push(itemId);
+              playBeep('success');
+              showToast(`Selected: ${item.trackingId}`, 'success');
+            }
+          }
+        } else {
+          const alreadyManifested = scans.find(s => s.trackingId.toLowerCase() === scanValue.toLowerCase());
+          if (alreadyManifested) {
+            playBeep('error');
+            showToast(`Parcel ${alreadyManifested.trackingId} status is "${alreadyManifested.status}".`, 'warning');
+          } else {
+            playBeep('error');
+            showToast(`Parcel "${scanValue}" not found in scanned list.`, 'error');
+          }
+        }
+
+        searchInput.value = '';
+        updateManifestPanel();
+      }
+    });
   }
 
   driverInput.addEventListener('input', () => {
