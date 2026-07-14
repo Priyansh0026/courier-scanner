@@ -924,15 +924,17 @@ function setupEditModal() {
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
   
-  saveBtn.addEventListener('click', () => {
+  saveBtn.addEventListener('click', async () => {
     const id = document.getElementById('edit-index-id').value;
     const courier = document.getElementById('edit-courier').value;
     const weight = parseFloat(document.getElementById('edit-weight').value) || 0.50;
     const status = document.getElementById('edit-status').value;
     const notes = document.getElementById('edit-notes').value.trim();
 
-    const scanIndex = scans.findIndex(s => s.id === id);
+    const scanIndex = scans.findIndex(s => s.id === id || s._id === id);
     if (scanIndex !== -1) {
+      const oldScan = { ...scans[scanIndex] };
+      
       scans[scanIndex].courierId = courier;
       scans[scanIndex].weight = weight;
       scans[scanIndex].status = status;
@@ -941,6 +943,24 @@ function setupEditModal() {
       saveData();
       renderAll();
       closeModal();
+
+      try {
+        const res = await apiFetch(`/api/scans/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ courierId: courier, weight, status, notes })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          console.error('Failed to sync edit with server:', data.message);
+          // Rollback on server error
+          scans[scanIndex] = oldScan;
+          saveData();
+          renderAll();
+          alert('Failed to save changes to the database. Error: ' + (data.message || 'Unknown'));
+        }
+      } catch (err) {
+        console.error('Network error during scan edit sync:', err.message);
+      }
     }
   });
 
@@ -950,10 +970,10 @@ function setupEditModal() {
 }
 
 function openEditModal(id) {
-  const item = scans.find(s => s.id === id);
+  const item = scans.find(s => s.id === id || s._id === id);
   if (!item) return;
 
-  document.getElementById('edit-index-id').value = item.id;
+  document.getElementById('edit-index-id').value = item.id || item._id;
   document.getElementById('edit-tracking-id').value = item.trackingId;
   document.getElementById('edit-courier').value = item.courierId;
   document.getElementById('edit-weight').value = item.weight;
