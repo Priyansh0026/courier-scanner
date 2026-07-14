@@ -908,10 +908,33 @@ function renderLoadTable() {
   lucide.createIcons();
 }
 
-function deleteScanItem(id) {
-  scans = scans.filter(s => s.id !== id);
+async function deleteScanItem(id) {
+  const scanIndex = scans.findIndex(s => s.id === id || s._id === id);
+  if (scanIndex === -1) return;
+
+  const deletedItem = scans[scanIndex];
+
+  // Optimistic local deletion
+  scans = scans.filter(s => s.id !== id && s._id !== id);
   saveData();
   renderAll();
+
+  try {
+    const res = await apiFetch(`/api/scans/${id}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      console.error('Failed to delete scan record from database:', data.message);
+      // Rollback on server error
+      scans.splice(scanIndex, 0, deletedItem);
+      saveData();
+      renderAll();
+      alert('Failed to delete scan record from database. Error: ' + (data.message || 'Unknown'));
+    }
+  } catch (err) {
+    console.error('Network error during scan deletion:', err.message);
+  }
 }
 
 // Package Edit Modal Handlers

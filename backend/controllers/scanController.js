@@ -131,9 +131,37 @@ const updateScan = async (req, res) => {
   }
 };
 
+const deleteScan = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const scan = await Scan.findOneAndDelete({ id, user: userId });
+    
+    if (!scan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Scan record not found.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Scan record deleted successfully!'
+    });
+  } catch (error) {
+    console.error('[JCMS Scan Controller] Delete scan error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete scan record. Database error.'
+    });
+  }
+};
+
 module.exports = {
   getScans,
   createScan,
   deleteScans,
-  updateScan
+  updateScan,
+  deleteScan
 };
