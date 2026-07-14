@@ -2029,7 +2029,7 @@ function performDeepTrackingSearch(trackingId) {
 
   // Set top header info
   document.getElementById('dt-tracking-id-large').textContent = scanItem.trackingId;
-  document.getElementById('dt-courier-large').textContent = `${courier.logo} ${courier.name}`;
+  document.getElementById('dt-courier-large').innerHTML = `${courier.logo} ${courier.name}`;
 
   // Style the Current Status badge to be larger and highlighted
   const badgeContainer = document.getElementById('dt-status-badge-container');
@@ -2073,9 +2073,14 @@ function performDeepTrackingSearch(trackingId) {
   if (signedContainer) {
     if (manifest && manifest.signedCopy) {
       signedContainer.innerHTML = `
-        <a href="${manifest.signedCopy}" target="_blank" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; color: #fff; background-color: var(--success); text-decoration: none;">
-          <i data-lucide="image" style="width:13px; height:13px;"></i> View Scanned Copy
-        </a>
+        <div style="margin-top: 8px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; max-width: 320px; background-color: var(--card-bg-light); box-shadow: var(--shadow-sm);">
+          <img src="${manifest.signedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="window.open('${manifest.signedCopy}', '_blank')" title="Click to view full image">
+          <div style="padding: 8px; text-align: center; border-top: 1px solid var(--border-color); background-color: var(--bg-primary);">
+            <a href="${manifest.signedCopy}" target="_blank" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="external-link" style="width:14px; height:14px;"></i> Open in New Tab
+            </a>
+          </div>
+        </div>
       `;
     } else if (manifest) {
       signedContainer.innerHTML = `<span style="color: var(--text-muted); font-weight: 700;">No receipt uploaded</span>`;
