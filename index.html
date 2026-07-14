@@ -279,7 +279,7 @@
                 <table id="load-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Scanned At</th>
                       <th>Tracking ID</th>
                       <th>Courier Brand</th>
                       <th class="weight-col">Weight</th>
@@ -713,6 +713,49 @@
       </div>
     </div>
   </div>
+  <!-- Manifest Details Modal -->
+  <div class="modal-backdrop" id="manifest-details-modal">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i data-lucide="file-text"></i> Manifest Details: <span id="md-manifest-id">MNF-XXX</span></h3>
+        <button class="close-btn" id="btn-close-manifest-details">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 15px;">
+        <div class="manifest-meta-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background-color: var(--card-bg-light); border-radius: 6px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+          <div>
+            <p style="margin-bottom: 6px;"><strong>Date Created:</strong> <span id="md-date">July 14, 2026</span></p>
+            <p style="margin: 0;"><strong>Pickup Driver:</strong> <span id="md-driver">Mohit</span></p>
+          </div>
+          <div>
+            <p style="margin-bottom: 6px;"><strong>Total Parcels:</strong> <span id="md-total-qty">0</span></p>
+            <p style="margin: 0;"><strong>Manifest Status:</strong> <span id="md-status" class="badge">Pending</span></p>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom: 10px; font-weight: 700;">Parcels List</h4>
+        <div class="table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+          <table class="data-table" style="margin: 0; width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 8%">S.No</th>
+                <th style="width: 32%">Tracking ID</th>
+                <th style="width: 25%">Courier</th>
+                <th style="width: 20%">Status</th>
+                <th style="width: 15%">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="md-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-close-manifest-details-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 

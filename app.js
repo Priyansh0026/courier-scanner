@@ -881,7 +881,7 @@ function renderLoadTable() {
 
   filteredScans.forEach((item, index) => {
     const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦', color: '#64748b' };
-    const dateStr = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date(item.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
     
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -2207,10 +2207,21 @@ function renderManifestHistoryTable() {
         `<option value="${opt}" ${p.status === opt ? 'selected' : ''}>${opt}</option>`
       ).join('');
 
+      const scanItem = scans.find(s => s.trackingId === p.trackingId);
+      const scanTimeStr = scanItem ? new Date(scanItem.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A';
+      
+      let deliveryTimeStr = 'N/A';
+      if (p.status === 'Delivered') {
+        const deliveryTimeRaw = (scanItem && scanItem.updatedAt) ? scanItem.updatedAt : m.timestamp;
+        deliveryTimeStr = new Date(deliveryTimeRaw).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+
       return `
         <tr style="border-bottom: 1px solid rgba(226, 232, 240, 0.4);">
-          <td style="padding: 8px 10px; font-family: monospace; font-weight:600; font-size:12px;">${p.trackingId}</td>
+          <td class="tracking-cell" style="padding: 8px 10px; font-family: monospace; font-weight:600; font-size:12px;">${p.trackingId}</td>
           <td style="padding: 8px 10px;">${courier.name}</td>
+          <td style="padding: 8px 10px; color: var(--text-muted);">${scanTimeStr}</td>
+          <td style="padding: 8px 10px; color: var(--text-muted);">${deliveryTimeStr}</td>
           <td class="weight-col" style="padding: 8px 10px;">${p.weight.toFixed(2)} kg</td>
           <td style="padding: 8px 10px; text-align: right;">
             <select class="parcel-status-select" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" style="height: 24px; padding: 2px 8px; font-size: 11px; font-weight:600; border-radius: 4px; border-color: var(--border-color); color:var(--text-main); background: var(--card-bg); cursor: pointer;">
@@ -2230,12 +2241,14 @@ function renderManifestHistoryTable() {
               <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
                 <th style="padding: 6px 10px;">Tracking ID (Document)</th>
                 <th style="padding: 6px 10px;">Courier Partner</th>
+                <th style="padding: 6px 10px;">Scanned At</th>
+                <th style="padding: 6px 10px;">Delivered At</th>
                 <th class="weight-col" style="padding: 6px 10px;">Weight</th>
                 <th style="padding: 6px 10px; text-align: right;">Status</th>
               </tr>
             </thead>
             <tbody>
-              ${parcelRows || '<tr><td colspan="4" style="text-align:center; padding:10px;">No parcels in this manifest.</td></tr>'}
+              ${parcelRows || '<tr><td colspan="6" style="text-align:center; padding:10px;">No parcels in this manifest.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -2290,6 +2303,15 @@ function renderManifestHistoryTable() {
       } catch (err) {
         showToast('Connection error', 'danger');
       }
+    });
+  });
+
+  // Bind tracking history clicks for manifest details table too!
+  tbody.querySelectorAll('.tracking-cell').forEach(cell => {
+    cell.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent accordion from toggling when clicking tracking link!
+      const trackingId = cell.textContent.trim();
+      openParcelHistoryModal(trackingId);
     });
   });
 
