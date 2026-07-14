@@ -86,15 +86,25 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
-// 4. DELETE /api/manifests/:id - Delete a manifest from history
+// 4. DELETE /api/manifests/:id - Delete a manifest from history and release its scans back to 'scanned'
 router.delete('/:id', async (req, res) => {
   try {
-    const manifest = await Manifest.findOneAndDelete({ id: req.params.id, user: req.user._id });
+    const manifest = await Manifest.findOne({ id: req.params.id, user: req.user._id });
     if (!manifest) {
       return res.status(404).json({ success: false, message: 'Manifest not found.' });
     }
 
-    return res.status(200).json({ success: true, message: 'Manifest history record deleted.' });
+    // Reset status of all parcels back to 'scanned' in DB
+    const trackingIds = manifest.parcels.map(p => p.trackingId);
+    await Scan.updateMany(
+      { trackingId: { $in: trackingIds }, user: req.user._id },
+      { status: 'scanned' }
+    );
+
+    // Delete the manifest
+    await Manifest.deleteOne({ _id: manifest._id });
+
+    return res.status(200).json({ success: true, message: 'Manifest deleted and scans reset to scanned status.' });
   } catch (err) {
     console.error('[JCMS Manifest Route] Delete error:', err.message);
     return res.status(500).json({ success: false, message: 'Failed to delete manifest record.' });

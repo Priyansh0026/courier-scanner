@@ -2289,6 +2289,7 @@ function renderManifestHistoryTable() {
           });
           if (res.ok) {
             showToast('Manifest record deleted.', 'info');
+            await loadData();
             loadManifestHistory();
           }
         } catch (e) {
