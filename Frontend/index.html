@@ -657,27 +657,60 @@
               </div>
 
               <!-- Details Panel (Initially hidden) -->
-              <div id="deep-tracking-result" class="hidden">
-                <div class="manifest-meta-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background-color: var(--card-bg-light); border-radius: 8px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border-color);">
-                  <div>
-                    <p style="margin-bottom: 8px;"><strong>Tracking ID:</strong> <span id="dt-tracking-id" style="font-family: monospace; font-weight: 700; color: var(--color-primary);">N/A</span></p>
-                    <p style="margin-bottom: 8px;"><strong>Courier Partner:</strong> <span id="dt-courier">N/A</span></p>
-                    <p style="margin: 0;"><strong>Current Status:</strong> <span id="dt-status" class="badge">N/A</span></p>
+              <div id="deep-tracking-result" class="hidden" style="margin-top: 20px;">
+                <!-- Highlighted Large Status Banner -->
+                <div style="text-align: center; background-color: var(--card-bg-light); border-radius: 12px; padding: 25px; border: 2px solid var(--border-color); margin-bottom: 25px; box-shadow: var(--shadow-sm);">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; display: block; margin-bottom: 8px;">Current Status</span>
+                  <div id="dt-status-badge-container" style="display: inline-block; margin-bottom: 12px;">
+                    <!-- Highlighted Badge populated dynamically -->
                   </div>
-                  <div>
-                    <p style="margin-bottom: 8px;"><strong>Scanned At:</strong> <span id="dt-scanned-at">N/A</span></p>
-                    <p style="margin-bottom: 8px;"><strong>Delivered At:</strong> <span id="dt-delivered-at">N/A</span></p>
-                    <p style="margin: 0;"><strong>Weight:</strong> <span id="dt-weight">0.00 kg</span></p>
+                  <h2 id="dt-tracking-id-large" style="font-family: monospace; font-size: 26px; font-weight: 800; color: var(--color-primary); margin: 0;">123456789</h2>
+                  <p id="dt-courier-large" style="font-size: 14px; font-weight: 600; color: var(--text-muted); margin: 6px 0 0 0;">Sky King</p>
+                </div>
+
+                <!-- Clean simplified details list -->
+                <div class="card" style="border: 1px solid var(--border-color); background-color: var(--bg-primary); margin: 0; box-shadow: none;">
+                  <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                      
+                      <!-- 1. Scan Kab Hua -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(226, 232, 240, 0.1); padding-bottom: 12px;">
+                        <span style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                          <i data-lucide="scan" style="color: var(--success); width: 18px; height: 18px;"></i> Office Intake Scan (Scanned)
+                        </span>
+                        <span id="dt-scan-time" style="font-weight: 700; color: var(--text-muted);">July 14, 2026 - 12:45 PM</span>
+                      </div>
+
+                      <!-- 2. Manifest Kab Bani -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(226, 232, 240, 0.1); padding-bottom: 12px;">
+                        <span style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                          <i data-lucide="clipboard-list" style="color: var(--color-primary); width: 18px; height: 18px;"></i> Manifest Date & Time
+                        </span>
+                        <span id="dt-manifest-time" style="font-weight: 700; color: var(--text-muted);">Not Manifested Yet</span>
+                      </div>
+
+                      <!-- 3. Manifest Kiske Naam Pe Bani (Driver) -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(226, 232, 240, 0.1); padding-bottom: 12px;">
+                        <span style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                          <i data-lucide="user" style="color: var(--color-primary); width: 18px; height: 18px;"></i> Dispatch Driver Name
+                        </span>
+                        <span id="dt-manifest-driver" style="font-weight: 700; color: var(--text-muted);">N/A</span>
+                      </div>
+
+                      <!-- 4. Scanned Manifest Upload Copy -->
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                          <i data-lucide="file-check-2" style="color: var(--success); width: 18px; height: 18px;"></i> Signed Manifest Receipt
+                        </span>
+                        <div id="dt-manifest-signed-container">
+                          <span style="color: var(--text-muted); font-weight: 700;">No receipt uploaded</span>
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
 
-                <h4 style="margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="route"></i> Lifecycle Audit History
-                </h4>
-                
-                <div class="timeline-container" id="dt-timeline" style="margin-left: 10px; border-left: 2px solid var(--border-color); padding-left: 20px; position: relative; margin-bottom: 15px;">
-                  <!-- Populated dynamically via JS -->
-                </div>
               </div>
             </div>
           </div>

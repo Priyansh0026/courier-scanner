@@ -2027,86 +2027,64 @@ function performDeepTrackingSearch(trackingId) {
 
   const courier = COURIER_PARTNERS.find(cp => cp.id === scanItem.courierId) || { name: 'Other', logo: '📦' };
 
-  document.getElementById('dt-tracking-id').textContent = scanItem.trackingId;
-  document.getElementById('dt-courier').textContent = `${courier.logo} ${courier.name}`;
+  // Set top header info
+  document.getElementById('dt-tracking-id-large').textContent = scanItem.trackingId;
+  document.getElementById('dt-courier-large').textContent = `${courier.logo} ${courier.name}`;
 
-  const statusEl = document.getElementById('dt-status');
-  if (statusEl) {
-    statusEl.textContent = scanItem.status.toUpperCase();
-    statusEl.className = `badge badge-status ${scanItem.status}`;
+  // Style the Current Status badge to be larger and highlighted
+  const badgeContainer = document.getElementById('dt-status-badge-container');
+  if (badgeContainer) {
+    badgeContainer.innerHTML = `<span class="badge badge-status ${scanItem.status}" style="font-size: 16px; padding: 8px 18px; border-radius: 20px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${scanItem.status.toUpperCase()}</span>`;
   }
 
+  // 1. Scan Kab Hua
   const scanTimeStr = new Date(scanItem.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-  document.getElementById('dt-scanned-at').textContent = scanTimeStr;
+  document.getElementById('dt-scan-time').textContent = scanTimeStr;
 
-  let deliveryTimeStr = 'N/A';
-  if (scanItem.status === 'Delivered') {
-    deliveryTimeStr = new Date(scanItem.updatedAt || scanItem.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-  }
-  document.getElementById('dt-delivered-at').textContent = deliveryTimeStr;
-  document.getElementById('dt-weight').textContent = `${(scanItem.weight || 0).toFixed(2)} kg`;
+  // Find manifest detail if exists
+  const manifest = manifestsHistoryList.find(m => m.parcels && m.parcels.some(p => p.trackingId === scanItem.trackingId));
 
-  // Render timeline audit details
-  const timeline = document.getElementById('dt-timeline');
-  if (timeline) {
-    timeline.innerHTML = '';
-
-    // Step 1: Intake Scan
-    let timelineHTML = `
-      <div class="timeline-item">
-        <div class="timeline-dot success"></div>
-        <div class="timeline-content">
-          <h4>Intake Office Scan</h4>
-          <p>Scanned and verified at office.</p>
-          <span class="timeline-time">${scanTimeStr}</span>
-        </div>
-      </div>
-    `;
-
-    // Step 2: Manifest details (if manifested)
-    const manifest = manifestsHistoryList.find(m => m.parcels && m.parcels.some(p => p.trackingId === scanItem.trackingId));
+  // 2. Manifest Kab Bani
+  const manifestTimeEl = document.getElementById('dt-manifest-time');
+  if (manifestTimeEl) {
     if (manifest) {
-      const manifestTimeStr = new Date(manifest.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-      timelineHTML += `
-        <div class="timeline-item">
-          <div class="timeline-dot info"></div>
-          <div class="timeline-content">
-            <h4>Manifested & Dispatched</h4>
-            <p>Assigned to Driver <strong>${manifest.driverName || 'Pending Details'}</strong></p>
-            <p style="font-size: 11px; font-family: monospace; color: var(--text-muted); margin-top: 4px;">Manifest ID: ${manifest.id}</p>
-            <span class="timeline-time">${manifestTimeStr}</span>
-          </div>
-        </div>
-      `;
+      manifestTimeEl.textContent = new Date(manifest.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+      manifestTimeEl.style.color = 'var(--text-main)';
+    } else {
+      manifestTimeEl.textContent = 'Not Manifested Yet';
+      manifestTimeEl.style.color = 'var(--text-muted)';
     }
-
-    // Step 3: Delivery Status
-    if (scanItem.status === 'Delivered') {
-      timelineHTML += `
-        <div class="timeline-item">
-          <div class="timeline-dot success"></div>
-          <div class="timeline-content">
-            <h4>Out for Delivery / Delivered</h4>
-            <p>Package marked as <strong>Delivered</strong> successfully.</p>
-            <span class="timeline-time">${deliveryTimeStr}</span>
-          </div>
-        </div>
-      `;
-    } else if (scanItem.status === 'Pending') {
-      timelineHTML += `
-        <div class="timeline-item">
-          <div class="timeline-dot warning"></div>
-          <div class="timeline-content">
-            <h4>Dispatched (Pending Delivery)</h4>
-            <p>Waiting for driver to mark as delivered.</p>
-          </div>
-        </div>
-      `;
-    }
-
-    timeline.innerHTML = timelineHTML;
-    lucide.createIcons();
   }
+
+  // 3. Manifest Kiske Naam Pe Bani (Driver)
+  const manifestDriverEl = document.getElementById('dt-manifest-driver');
+  if (manifestDriverEl) {
+    if (manifest) {
+      manifestDriverEl.textContent = manifest.driverName || 'Pending Details';
+      manifestDriverEl.style.color = 'var(--text-main)';
+    } else {
+      manifestDriverEl.textContent = 'N/A';
+      manifestDriverEl.style.color = 'var(--text-muted)';
+    }
+  }
+
+  // 4. Scanned Manifest Upload Copy
+  const signedContainer = document.getElementById('dt-manifest-signed-container');
+  if (signedContainer) {
+    if (manifest && manifest.signedCopy) {
+      signedContainer.innerHTML = `
+        <a href="${manifest.signedCopy}" target="_blank" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; color: #fff; background-color: var(--success); text-decoration: none;">
+          <i data-lucide="image" style="width:13px; height:13px;"></i> View Scanned Copy
+        </a>
+      `;
+    } else if (manifest) {
+      signedContainer.innerHTML = `<span style="color: var(--text-muted); font-weight: 700;">No receipt uploaded</span>`;
+    } else {
+      signedContainer.innerHTML = `<span style="color: var(--text-muted); font-weight: 700;">N/A (Not Manifested)</span>`;
+    }
+  }
+
+  lucide.createIcons();
 }
 
 // Render the active courier configurations table in Settings
