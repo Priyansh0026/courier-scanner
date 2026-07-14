@@ -2715,6 +2715,20 @@ document.addEventListener('DOMContentLoaded', () => {
       historyModal.classList.remove('active');
     });
   }
+  const closeManifestBtn = document.getElementById('btn-close-manifest-details');
+  const closeManifestFooterBtn = document.getElementById('btn-close-manifest-details-footer');
+  const manifestModal = document.getElementById('manifest-details-modal');
+
+  if (closeManifestBtn) {
+    closeManifestBtn.addEventListener('click', () => {
+      manifestModal.classList.remove('active');
+    });
+  }
+  if (closeManifestFooterBtn) {
+    closeManifestFooterBtn.addEventListener('click', () => {
+      manifestModal.classList.remove('active');
+    });
+  }
 });
 
 async function openParcelHistoryModal(trackingId) {
