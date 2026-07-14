@@ -1394,12 +1394,14 @@ function setupAuth() {
       } else {
         localStorage.removeItem('jcms_active_session');
         localStorage.removeItem('jcms_logged_user');
+        localStorage.removeItem('jcms_token');
         window.location.href = 'auth.html';
       }
     } catch (err) {
       console.error('[JCMS Auth App] Failed checking session state:', err);
       localStorage.removeItem('jcms_active_session');
       localStorage.removeItem('jcms_logged_user');
+      localStorage.removeItem('jcms_token');
       window.location.href = 'auth.html';
     }
   };
