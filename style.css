@@ -1114,6 +1114,15 @@ tr:hover td {
   display: block;
 }
 
+.manifest-checkbox-placeholder {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #000000;
+  margin: 0 auto;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
 .manifest-totals {
   display: flex;
   justify-content: flex-end;
