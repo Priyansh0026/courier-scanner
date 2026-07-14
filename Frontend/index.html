@@ -383,7 +383,10 @@
                   <div class="manifest-selection-list">
                     <div class="selection-header">
                       <h4>Packages Available to Add (<span id="available-manifest-count">0</span>)</h4>
-                      <button class="link-btn" id="btn-select-all-manifest">Select All</button>
+                      <div style="display: flex; gap: 10px;">
+                        <button class="link-btn" id="btn-select-all-manifest">Select All</button>
+                        <button class="link-btn" id="btn-select-specific-manifest" style="color: var(--primary);">Select Specific</button>
+                      </div>
                     </div>
                     <div class="selection-box" id="manifest-packages-container">
                       <!-- Populated dynamically -->

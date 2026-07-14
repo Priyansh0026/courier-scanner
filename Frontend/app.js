@@ -1086,6 +1086,43 @@ function setupManifestGenerator() {
     updatePreviewSheet();
   });
 
+  const selectSpecificBtn = document.getElementById('btn-select-specific-manifest');
+  if (selectSpecificBtn) {
+    selectSpecificBtn.addEventListener('click', () => {
+      const searchInput = document.getElementById('manifest-search-input');
+      const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      
+      let available = scans.filter(s => s.status === 'scanned');
+      if (searchVal) {
+        available = available.filter(item => {
+          const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦' };
+          return item.trackingId.toLowerCase().includes(searchVal) || 
+                 courier.name.toLowerCase().includes(searchVal);
+        });
+      }
+
+      // Clear any other previous selections and select ONLY these filtered items (max 30)
+      const toSelect = available.slice(0, 30);
+      selectedManifestIds = toSelect.map(s => s.id || s._id);
+      
+      // Update checkboxes in DOM
+      const checkboxes = document.querySelectorAll('.manifest-cb');
+      checkboxes.forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        cb.checked = selectedManifestIds.includes(id);
+      });
+
+      if (available.length > 30) {
+        showToast('Selected first 30 specific parcels matching filter.', 'warning');
+      } else {
+        showToast(`Selected all ${available.length} specific parcels matching filter.`, 'success');
+      }
+
+      document.getElementById('btn-generate-manifest').disabled = selectedManifestIds.length === 0;
+      updatePreviewSheet();
+    });
+  }
+
   generateBtn.addEventListener('click', async () => {
     try {
       initAudio();
