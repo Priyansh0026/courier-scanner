@@ -757,11 +757,25 @@ function setupBulkImport() {
 const searchInput = document.getElementById('search-load');
 const filterCourier = document.getElementById('filter-courier');
 const filterStatus = document.getElementById('filter-status');
+const filterDate = document.getElementById('filter-date');
 
-[searchInput, filterCourier, filterStatus].forEach(el => {
-  el.addEventListener('input', () => {
-    renderLoadTable();
-  });
+if (filterDate) {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  filterDate.value = `${yyyy}-${mm}-${dd}`;
+}
+
+[searchInput, filterCourier, filterStatus, filterDate].forEach(el => {
+  if (el) {
+    el.addEventListener('input', () => {
+      renderAll();
+    });
+    el.addEventListener('change', () => {
+      renderAll();
+    });
+  }
 });
 
 // Clear all logs
@@ -823,14 +837,19 @@ function renderAll() {
 }
 
 function updateStats() {
-  const todayStr = new Date().toDateString();
-  const todayScans = scans.filter(s => s.timestamp && new Date(s.timestamp).toDateString() === todayStr);
+  const filterDateVal = document.getElementById('filter-date') ? document.getElementById('filter-date').value : '';
+  let filteredScans = scans;
+  
+  if (filterDateVal) {
+    const targetDateStr = new Date(filterDateVal).toDateString();
+    filteredScans = scans.filter(s => s.timestamp && new Date(s.timestamp).toDateString() === targetDateStr);
+  }
 
-  const total = todayScans.length;
-  const scanned = todayScans.filter(s => s.status === 'scanned').length;
-  const manifested = todayScans.filter(s => s.status === 'Pending' || s.status === 'Delivered').length;
-  const delivered = todayScans.filter(s => s.status && s.status.toLowerCase() === 'delivered').length;
-  const pending = todayScans.filter(s => s.status === 'Pending').length;
+  const total = filteredScans.length;
+  const scanned = filteredScans.filter(s => s.status === 'scanned').length;
+  const manifested = filteredScans.filter(s => s.status === 'Pending' || s.status === 'Delivered').length;
+  const delivered = filteredScans.filter(s => s.status && s.status.toLowerCase() === 'delivered').length;
+  const pending = filteredScans.filter(s => s.status === 'Pending').length;
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-scanned').textContent = scanned;
@@ -849,10 +868,19 @@ function renderLoadTable() {
   const searchQuery = searchInput.value.toLowerCase().trim();
   const courierFilter = filterCourier.value;
   const statusFilter = filterStatus.value;
+  const filterDateVal = document.getElementById('filter-date') ? document.getElementById('filter-date').value : '';
 
   tbody.innerHTML = '';
 
   const filteredScans = scans.filter(item => {
+    // 1. Filter by Date
+    if (filterDateVal) {
+      const targetDateStr = new Date(filterDateVal).toDateString();
+      if (!item.timestamp || new Date(item.timestamp).toDateString() !== targetDateStr) {
+        return false;
+      }
+    }
+
     const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other' };
     const matchesSearch = item.trackingId.toLowerCase().includes(searchQuery) || 
                           item.id.toLowerCase().includes(searchQuery) ||
