@@ -61,6 +61,10 @@
           <i data-lucide="settings"></i>
           <span>Manage Couriers</span>
         </button>
+        <button class="nav-btn" data-tab="deep-tracking" id="btn-tab-tracking">
+          <i data-lucide="search-code"></i>
+          <span>Deep Tracking</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -622,6 +626,57 @@
                     <!-- Populated dynamically -->
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DEEP TRACKING TAB -->
+        <section id="tab-deep-tracking" class="tab-pane">
+          <div class="card" style="max-width: 700px; margin: 0 auto;">
+            <div class="card-header">
+              <h3><i data-lucide="search-code"></i> Deep Parcel History & Audit</h3>
+            </div>
+            <div class="card-body">
+              <p style="color: var(--text-muted); margin-bottom: 20px;">
+                Enter or scan a Tracking ID to retrieve the complete lifecycle log, timestamps, and delivery dispatch history.
+              </p>
+              
+              <div class="form-group" style="display: flex; gap: 10px; margin-bottom: 25px;">
+                <input type="text" id="deep-tracking-search-input" placeholder="Scan or enter Tracking ID..." style="flex: 1; height: 44px; font-size: 15px; font-weight: 600;">
+                <button class="btn btn-primary" id="btn-deep-tracking-search" style="height: 44px; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="search"></i> Search
+                </button>
+              </div>
+
+              <!-- Empty State / Welcome Screen -->
+              <div id="deep-tracking-empty" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i data-lucide="scan" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                <p>Waiting for scan or manual entry...</p>
+              </div>
+
+              <!-- Details Panel (Initially hidden) -->
+              <div id="deep-tracking-result" class="hidden">
+                <div class="manifest-meta-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background-color: var(--card-bg-light); border-radius: 8px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                  <div>
+                    <p style="margin-bottom: 8px;"><strong>Tracking ID:</strong> <span id="dt-tracking-id" style="font-family: monospace; font-weight: 700; color: var(--color-primary);">N/A</span></p>
+                    <p style="margin-bottom: 8px;"><strong>Courier Partner:</strong> <span id="dt-courier">N/A</span></p>
+                    <p style="margin: 0;"><strong>Current Status:</strong> <span id="dt-status" class="badge">N/A</span></p>
+                  </div>
+                  <div>
+                    <p style="margin-bottom: 8px;"><strong>Scanned At:</strong> <span id="dt-scanned-at">N/A</span></p>
+                    <p style="margin-bottom: 8px;"><strong>Delivered At:</strong> <span id="dt-delivered-at">N/A</span></p>
+                    <p style="margin: 0;"><strong>Weight:</strong> <span id="dt-weight">0.00 kg</span></p>
+                  </div>
+                </div>
+
+                <h4 style="margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="route"></i> Lifecycle Audit History
+                </h4>
+                
+                <div class="timeline-container" id="dt-timeline" style="margin-left: 10px; border-left: 2px solid var(--border-color); padding-left: 20px; position: relative; margin-bottom: 15px;">
+                  <!-- Populated dynamically via JS -->
+                </div>
               </div>
             </div>
           </div>

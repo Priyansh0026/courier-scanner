@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEditModal();
   setupManifestHistoryFilters();
   setupCourierConfig(); // Custom Courier Manager setup
+  setupDeepTracking(); // Deep Tracking Audit setup
 
   // Initialize Focus Lock
   manageFocusLock();
@@ -280,6 +281,8 @@ function setupNavigation() {
         pageTitle.textContent = 'Logistics Analytics';
         setTimeout(renderCharts, 100); // Small timeout to ensure canvas is visible for sizing
       }
+      else if (tabId === 'manage-couriers') pageTitle.textContent = 'Active Courier Partners';
+      else if (tabId === 'deep-tracking') pageTitle.textContent = 'Deep Tracking Audit';
 
       // Re-trigger layout icons
       lucide.createIcons();
@@ -1951,6 +1954,131 @@ function setupCourierConfig() {
 
   // Load list table
   renderCourierListTable();
+}
+
+// Deep Tracking Audit Tab Logic
+function setupDeepTracking() {
+  const searchInput = document.getElementById('deep-tracking-search-input');
+  const searchBtn = document.getElementById('btn-deep-tracking-search');
+
+  if (searchBtn && searchInput) {
+    searchBtn.addEventListener('click', () => {
+      performDeepTrackingSearch(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        performDeepTrackingSearch(searchInput.value.trim());
+      }
+    });
+  }
+}
+
+function performDeepTrackingSearch(trackingId) {
+  if (!trackingId) return;
+
+  const scanItem = scans.find(s => s.trackingId === trackingId);
+  const emptyPanel = document.getElementById('deep-tracking-empty');
+  const resultPanel = document.getElementById('deep-tracking-result');
+
+  if (!scanItem) {
+    if (emptyPanel) {
+      emptyPanel.classList.remove('hidden');
+      emptyPanel.innerHTML = `
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; margin-bottom: 12px; color: var(--danger);"></i>
+        <p style="color: var(--danger); font-weight: 600;">Parcel "${trackingId}" not found in database.</p>
+      `;
+      lucide.createIcons();
+    }
+    if (resultPanel) resultPanel.classList.add('hidden');
+    return;
+  }
+
+  if (emptyPanel) emptyPanel.classList.add('hidden');
+  if (resultPanel) resultPanel.classList.remove('hidden');
+
+  const courier = COURIER_PARTNERS.find(cp => cp.id === scanItem.courierId) || { name: 'Other', logo: '📦' };
+
+  document.getElementById('dt-tracking-id').textContent = scanItem.trackingId;
+  document.getElementById('dt-courier').textContent = `${courier.logo} ${courier.name}`;
+
+  const statusEl = document.getElementById('dt-status');
+  if (statusEl) {
+    statusEl.textContent = scanItem.status.toUpperCase();
+    statusEl.className = `badge badge-status ${scanItem.status}`;
+  }
+
+  const scanTimeStr = new Date(scanItem.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  document.getElementById('dt-scanned-at').textContent = scanTimeStr;
+
+  let deliveryTimeStr = 'N/A';
+  if (scanItem.status === 'Delivered') {
+    deliveryTimeStr = new Date(scanItem.updatedAt || scanItem.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  document.getElementById('dt-delivered-at').textContent = deliveryTimeStr;
+  document.getElementById('dt-weight').textContent = `${(scanItem.weight || 0).toFixed(2)} kg`;
+
+  // Render timeline audit details
+  const timeline = document.getElementById('dt-timeline');
+  if (timeline) {
+    timeline.innerHTML = '';
+
+    // Step 1: Intake Scan
+    let timelineHTML = `
+      <div class="timeline-item">
+        <div class="timeline-dot success"></div>
+        <div class="timeline-content">
+          <h4>Intake Office Scan</h4>
+          <p>Scanned and verified at office.</p>
+          <span class="timeline-time">${scanTimeStr}</span>
+        </div>
+      </div>
+    `;
+
+    // Step 2: Manifest details (if manifested)
+    const manifest = manifestsHistoryList.find(m => m.parcels && m.parcels.some(p => p.trackingId === scanItem.trackingId));
+    if (manifest) {
+      const manifestTimeStr = new Date(manifest.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+      timelineHTML += `
+        <div class="timeline-item">
+          <div class="timeline-dot info"></div>
+          <div class="timeline-content">
+            <h4>Manifested & Dispatched</h4>
+            <p>Assigned to Driver <strong>${manifest.driverName || 'Pending Details'}</strong></p>
+            <p style="font-size: 11px; font-family: monospace; color: var(--text-muted); margin-top: 4px;">Manifest ID: ${manifest.id}</p>
+            <span class="timeline-time">${manifestTimeStr}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 3: Delivery Status
+    if (scanItem.status === 'Delivered') {
+      timelineHTML += `
+        <div class="timeline-item">
+          <div class="timeline-dot success"></div>
+          <div class="timeline-content">
+            <h4>Out for Delivery / Delivered</h4>
+            <p>Package marked as <strong>Delivered</strong> successfully.</p>
+            <span class="timeline-time">${deliveryTimeStr}</span>
+          </div>
+        </div>
+      `;
+    } else if (scanItem.status === 'Pending') {
+      timelineHTML += `
+        <div class="timeline-item">
+          <div class="timeline-dot warning"></div>
+          <div class="timeline-content">
+            <h4>Dispatched (Pending Delivery)</h4>
+            <p>Waiting for driver to mark as delivered.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    timeline.innerHTML = timelineHTML;
+    lucide.createIcons();
+  }
 }
 
 // Render the active courier configurations table in Settings
