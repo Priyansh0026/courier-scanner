@@ -1277,6 +1277,8 @@ function setupManifestGenerator() {
           showToast(`Manifest ${manifestId} saved to database successfully!`, 'success');
         } else {
           showToast(data.message || 'Failed to save manifest to database.', 'warning');
+          generateBtn.disabled = false;
+          return; // Stop execution: do not print and do not clear checkboxes
         }
       } catch (err) {
         console.error('[JCMS Manifest] Save error:', err);
@@ -1296,6 +1298,7 @@ function setupManifestGenerator() {
 
       saveData();
       renderAll();
+      loadManifestHistory(); // Reload history list dynamically so it shows up immediately
       
       // Reset selection and fields
       selectedManifestIds = [];
@@ -1306,6 +1309,7 @@ function setupManifestGenerator() {
     } catch (btnErr) {
       console.error('[JCMS Manifest Generation Crash]:', btnErr);
       alert('Manifest Generation Error: ' + btnErr.message);
+      generateBtn.disabled = false;
     }
   });
 

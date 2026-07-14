@@ -42,6 +42,19 @@ const initializeDatabase = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/jcms_secure_auth');
     console.log(`[JCMS DB] MongoDB Connected: ${conn.connection.host}`);
     
+    // Safely drop the old unique 'id_1' index from manifests collection if present
+    try {
+      const manifestCollection = mongoose.connection.collection('manifests');
+      const indexes = await manifestCollection.indexes();
+      if (indexes.some(idx => idx.name === 'id_1')) {
+        console.log('[JCMS DB] Dropping old global unique index "id_1" from manifests...');
+        await manifestCollection.dropIndex('id_1');
+        console.log('[JCMS DB] Dropped "id_1" successfully!');
+      }
+    } catch (indexErr) {
+      console.log('[JCMS DB] Manifest unique index drop warning:', indexErr.message);
+    }
+
     // Seed default owner account if not exists
     await seedOwnerAccount();
   } catch (error) {
