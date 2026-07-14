@@ -1497,6 +1497,7 @@ function generateManifestPageHTML(manifestId, dateStr, driverName, parcels, star
         <td style="text-align: center;">${globalIdx + 1}</td>
         <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${p.trackingId}</td>
         <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
+        <td><!-- Blank Receiver Name --></td>
         <td><div class="manifest-sign-placeholder"></div></td>
         <td class="weight-col">${p.weight.toFixed(2)} kg</td>
       </tr>
@@ -1557,10 +1558,11 @@ function generateManifestPageHTML(manifestId, dateStr, driverName, parcels, star
         <thead>
           <tr>
             <th style="width: 8%">S.No.</th>
-            <th style="width: 32%">Tracking ID</th>
-            <th style="width: 20%">Courier</th>
-            <th style="width: 25%; text-align: center;">Sign</th>
-            <th class="weight-col" style="width: 15%">Weight</th>
+            <th style="width: 25%">Tracking ID</th>
+            <th style="width: 17%">Courier</th>
+            <th style="width: 20%; text-align: left;">Receiver Name</th>
+            <th style="width: 18%; text-align: center;">Sign</th>
+            <th class="weight-col" style="width: 12%">Weight</th>
           </tr>
         </thead>
         <tbody>
