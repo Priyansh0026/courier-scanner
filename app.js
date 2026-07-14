@@ -1354,55 +1354,151 @@ function toggleManifestSelection(id, checked) {
   updatePreviewSheet();
 }
 
-// Generate the printable preview sheet
-function updatePreviewSheet() {
-  const pmTableBody = document.getElementById('pm-table-body');
-  const pmTotalQty = document.getElementById('pm-total-qty');
-  const pmTotalWt = document.getElementById('pm-total-wt');
-  const pmId = document.getElementById('pm-id');
+let currentManifestId = '';
 
-  // Random Manifest ID generator
-  pmId.textContent = 'MNF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
-
-  if (selectedManifestIds.length === 0) {
-    pmTableBody.innerHTML = `
-      <tr>
-        <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted)">
-          No packages added to manifest preview. Select packages on the left.
-        </td>
-      </tr>
-    `;
-    pmTotalQty.textContent = '0';
-    pmTotalWt.textContent = '0.00 kg';
-    return;
-  }
-
-  pmTableBody.innerHTML = '';
-  let totalWeight = 0;
-
-  selectedManifestIds.forEach((id, idx) => {
-    const item = scans.find(s => s.id === id || s._id === id);
-    if (!item) return;
-
-    const courier = COURIER_PARTNERS.find(p => p.id === item.courierId) || { name: 'Other', logo: '📦' };
+function generateManifestPageHTML(manifestId, dateStr, driverName, parcels, startIndex, totalQty, totalWeight, isLastPage, pageNum, totalPages) {
+  let tableRowsHTML = '';
+  parcels.forEach((p, idx) => {
+    const globalIdx = startIndex + idx;
+    const courier = COURIER_PARTNERS.find(c => c.id === p.courierId) || { name: 'Other', logo: '📦' };
     const isImgLogo = typeof courier.logo === 'string' && courier.logo.startsWith('<img');
     const displayLogo = isImgLogo ? '🏎️' : courier.logo;
 
-    totalWeight += item.weight;
-    const row = document.createElement('tr');
-    
-    row.innerHTML = `
-      <td style="text-align: center;">${idx + 1}</td>
-      <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${item.trackingId}</td>
-      <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
-      <td><div class="manifest-sign-placeholder"></div></td>
-      <td class="weight-col">${item.weight.toFixed(2)} kg</td>
+    tableRowsHTML += `
+      <tr>
+        <td style="text-align: center;">${globalIdx + 1}</td>
+        <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${p.trackingId}</td>
+        <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
+        <td><div class="manifest-sign-placeholder"></div></td>
+        <td class="weight-col">${p.weight.toFixed(2)} kg</td>
+      </tr>
     `;
-    pmTableBody.appendChild(row);
   });
 
-  pmTotalQty.textContent = selectedManifestIds.length;
-  pmTotalWt.textContent = totalWeight.toFixed(2) + ' kg';
+  let totalsHTML = '';
+  let signSectionHTML = '';
+
+  if (isLastPage) {
+    totalsHTML = `
+      <div class="manifest-totals" style="margin-bottom: 20px;">
+        <div class="total-item">
+          <span>Total Parcels:</span>
+          <strong>${totalQty}</strong>
+        </div>
+        <div class="total-item weight-col">
+          <span>Total Weight:</span>
+          <strong>${totalWeight.toFixed(2)} kg</strong>
+        </div>
+      </div>
+    `;
+
+    signSectionHTML = `
+      <div class="manifest-sign-section">
+        <div class="sign-block">
+          <div class="sign-line"></div>
+          <span>Franchise Coordinator Signature</span>
+        </div>
+        <div class="sign-block">
+          <div class="sign-line"></div>
+          <span>Courier Driver Signature</span>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="manifest-print-page">
+      <div class="manifest-print-header">
+        <div class="manifest-brand-info">
+          <h2>JAIN COURIER MANIFEST (JCMS)</h2>
+          <p><strong>Franchise:</strong> Jain Courier Services</p>
+        </div>
+        <div class="manifest-meta">
+          <p><strong>Manifest ID:</strong> <span>${manifestId}</span></p>
+          <p><strong>Date:</strong> <span>${dateStr}</span></p>
+          <p><strong>Type:</strong> <span>Unified Manifest</span></p>
+        </div>
+      </div>
+
+      <div class="manifest-driver-info" style="display: flex; justify-content: space-between; align-items: center;">
+        <p><strong>Pickup Driver:</strong> <span>${driverName || 'Pending Details'}</span></p>
+        <p style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Page ${pageNum} of ${totalPages}</p>
+      </div>
+
+      <table class="manifest-print-table">
+        <thead>
+          <tr>
+            <th style="width: 8%">S.No.</th>
+            <th style="width: 32%">Tracking ID</th>
+            <th style="width: 20%">Courier</th>
+            <th style="width: 25%; text-align: center;">Sign</th>
+            <th class="weight-col" style="width: 15%">Weight</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRowsHTML}
+        </tbody>
+      </table>
+
+      ${totalsHTML}
+      ${signSectionHTML}
+    </div>
+  `;
+}
+
+// Generate the printable preview sheet
+function updatePreviewSheet() {
+  const container = document.getElementById('printable-manifest');
+  if (!container) return;
+
+  if (selectedManifestIds.length === 0) {
+    currentManifestId = '';
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: var(--text-muted)">
+        No packages added to manifest preview. Select packages on the left.
+      </div>
+    `;
+    return;
+  }
+
+  if (!currentManifestId) {
+    currentManifestId = 'MNF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
+  }
+
+  const driverInput = document.getElementById('driver-name');
+  const driverName = driverInput ? driverInput.value.trim() : '';
+  const dateStr = new Date().toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const selectedParcels = selectedManifestIds
+    .map(id => scans.find(s => s.id === id || s._id === id))
+    .filter(s => s !== undefined && s !== null);
+
+  const totalQty = selectedParcels.length;
+  const totalWeight = selectedParcels.reduce((acc, s) => acc + (s.weight || 0.00), 0);
+
+  const pageSize = 12;
+  const totalPages = Math.ceil(selectedParcels.length / pageSize);
+  
+  let html = '';
+  for (let i = 0; i < totalPages; i++) {
+    const startIdx = i * pageSize;
+    const pageParcels = selectedParcels.slice(startIdx, startIdx + pageSize);
+    const isLastPage = (i === totalPages - 1);
+    html += generateManifestPageHTML(
+      currentManifestId,
+      dateStr,
+      driverName,
+      pageParcels,
+      startIdx,
+      totalQty,
+      totalWeight,
+      isLastPage,
+      i + 1,
+      totalPages
+    );
+  }
+
+  container.innerHTML = html;
 }
 
 // Rendering Analytics charts and tables
@@ -2259,32 +2355,35 @@ function renderManifestHistoryTable() {
 }
 
 function reprintHistoricalManifest(manifest) {
-  // Load old details in print layout
-  document.getElementById('pm-id').textContent = manifest.id;
-  document.getElementById('pm-date').textContent = new Date(manifest.timestamp).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
-  document.getElementById('pm-driver').textContent = manifest.driverName || 'Pending Details';
-  
-  const pmTableBody = document.getElementById('pm-table-body');
-  pmTableBody.innerHTML = '';
-  
-  manifest.parcels.forEach((p, idx) => {
-    const courier = COURIER_PARTNERS.find(c => c.id === p.courierId) || { name: 'Other', logo: '📦' };
-    const isImgLogo = typeof courier.logo === 'string' && courier.logo.startsWith('<img');
-    const displayLogo = isImgLogo ? '🏎️' : courier.logo;
+  const container = document.getElementById('printable-manifest');
+  if (!container) return;
 
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td style="text-align: center;">${idx + 1}</td>
-      <td style="font-family: monospace; font-weight: 600; font-size: 13px;">${p.trackingId}</td>
-      <td style="font-weight: 600; color: ${courier.color || '#64748b'}">${displayLogo} ${courier.name}</td>
-      <td><div class="manifest-sign-placeholder"></div></td>
-      <td>${p.weight.toFixed(2)} kg</td>
-    `;
-    pmTableBody.appendChild(row);
-  });
+  const dateStr = new Date(manifest.timestamp).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
 
-  document.getElementById('pm-total-qty').textContent = manifest.totalQty;
-  document.getElementById('pm-total-wt').textContent = manifest.totalWeight.toFixed(2) + ' kg';
+  // Group packages by 12
+  const pageSize = 12;
+  const totalPages = Math.ceil(manifest.parcels.length / pageSize);
+  
+  let html = '';
+  for (let i = 0; i < totalPages; i++) {
+    const startIdx = i * pageSize;
+    const pageParcels = manifest.parcels.slice(startIdx, startIdx + pageSize);
+    const isLastPage = (i === totalPages - 1);
+    html += generateManifestPageHTML(
+      manifest.id,
+      dateStr,
+      manifest.driverName,
+      pageParcels,
+      startIdx,
+      manifest.totalQty,
+      manifest.totalWeight,
+      isLastPage,
+      i + 1,
+      totalPages
+    );
+  }
+
+  container.innerHTML = html;
 
   // Toggle view back to create view to see sheet
   document.getElementById('btn-subtab-create').click();

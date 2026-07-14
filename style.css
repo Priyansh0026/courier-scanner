@@ -1099,8 +1099,8 @@ tr:hover td {
 
 .manifest-print-table td {
   border: 1px solid #cccccc;
-  padding: 8px;
-  font-size: 12px;
+  padding: 14px 8px;
+  font-size: 13px;
   color: #000000;
 }
 
@@ -1115,10 +1115,10 @@ tr:hover td {
 }
 
 .manifest-sign-placeholder {
-  width: 80px;
-  height: 20px;
-  border-bottom: 1px solid #000000;
-  margin: 2px auto;
+  width: 90px;
+  height: 25px;
+  border-bottom: 1.5px solid #000000;
+  margin: 6px auto 0 auto;
 }
 
 .manifest-totals {
@@ -1358,6 +1358,21 @@ tr:hover td {
   @page {
     size: A4 portrait;
     margin: 12mm 15mm 12mm 15mm;
+  }
+
+  .manifest-print-page {
+    page-break-after: always !important;
+    break-after: page !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .manifest-print-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 }
 
