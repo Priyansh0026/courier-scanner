@@ -814,9 +814,9 @@ function updateStats() {
 
   const total = todayScans.length;
   const scanned = todayScans.filter(s => s.status === 'scanned').length;
-  const manifested = todayScans.filter(s => s.status === 'manifested').length;
+  const manifested = todayScans.filter(s => s.status === 'Pending' || s.status === 'Delivered').length;
   const delivered = todayScans.filter(s => s.status && s.status.toLowerCase() === 'delivered').length;
-  const pending = todayScans.filter(s => !s.status || s.status.toLowerCase() !== 'delivered').length;
+  const pending = todayScans.filter(s => s.status === 'Pending').length;
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-scanned').textContent = scanned;
@@ -846,9 +846,11 @@ function renderLoadTable() {
     if (statusFilter === 'all') {
       matchesStatus = true;
     } else if (statusFilter.toLowerCase() === 'delivered') {
-      matchesStatus = item.status && (item.status.toLowerCase() === 'delivered' || item.status.toLowerCase() === 'dispatched');
+      matchesStatus = item.status && item.status.toLowerCase() === 'delivered';
     } else if (statusFilter.toLowerCase() === 'pending') {
-      matchesStatus = !item.status || (item.status.toLowerCase() !== 'delivered' && item.status.toLowerCase() !== 'dispatched');
+      matchesStatus = item.status && item.status.toLowerCase() === 'pending';
+    } else if (statusFilter.toLowerCase() === 'manifested') {
+      matchesStatus = item.status && (item.status === 'Pending' || item.status === 'Delivered');
     } else {
       matchesStatus = item.status === statusFilter;
     }
@@ -1172,6 +1174,9 @@ function setupManifestGenerator() {
         return;
       }
 
+      // Disable button immediately to prevent double submissions
+      generateBtn.disabled = true;
+
       const manifestId = document.getElementById('pm-id').textContent;
       const driverName = driverInput ? driverInput.value.trim() : '';
       const totalWt = parseFloat(document.getElementById('pm-total-wt').textContent) || 0.00;
@@ -1218,11 +1223,11 @@ function setupManifestGenerator() {
       // Trigger Print
       window.print();
 
-      // Mark packages as 'manifested' locally and save
+      // Mark packages as 'Pending' locally and save
       selectedManifestIds.forEach(id => {
         const idx = scans.findIndex(s => s.id === id || s._id === id);
         if (idx !== -1) {
-          scans[idx].status = 'manifested';
+          scans[idx].status = 'Pending';
         }
       });
 
