@@ -194,4 +194,38 @@ router.put('/:manifestId/parcels/:trackingId/status', async (req, res) => {
   }
 });
 
+// 8. PUT /api/manifests/:id/deliver-all - Mark all parcels in a manifest as Delivered
+router.put('/:id/deliver-all', async (req, res) => {
+  try {
+    const manifest = await Manifest.findOne({ id: req.params.id, user: req.user._id });
+    if (!manifest) {
+      return res.status(404).json({ success: false, message: 'Manifest not found.' });
+    }
+
+    // 1. Mark all parcels inside this manifest as Delivered
+    manifest.parcels.forEach(p => {
+      p.status = 'Delivered';
+    });
+    // Set overall manifest status to Delivered too
+    manifest.status = 'Delivered';
+    await manifest.save();
+
+    // 2. Update scan records in Scan collection to 'Delivered'
+    const trackingIds = manifest.parcels.map(p => p.trackingId);
+    await Scan.updateMany(
+      { trackingId: { $in: trackingIds }, user: req.user._id },
+      { status: 'Delivered' }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'All parcels in this manifest marked as Delivered successfully!',
+      manifest
+    });
+  } catch (err) {
+    console.error('[JCMS Manifest Route] Deliver all error:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to update status for all parcels.' });
+  }
+});
+
 module.exports = router;

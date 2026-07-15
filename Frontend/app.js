@@ -2447,7 +2447,13 @@ function renderManifestHistoryTable() {
     trDetails.innerHTML = `
       <td colspan="7" style="padding: 15px 25px;">
         <div style="border-left: 3px solid var(--color-primary); padding-left: 12px;">
-          <h4 style="margin: 0 0 8px 0; color: var(--color-primary); font-size: 13px;">Document Status Tracker</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h4 style="margin: 0; color: var(--color-primary); font-size: 13px;">Document Status Tracker</h4>
+            <button class="btn-deliver-all" data-id="${m.id}" style="padding: 4px 10px; font-size: 11px; font-weight: 600; color: #ffffff; background: var(--success); border: none; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s;">
+              <i data-lucide="check-square" style="width: 12px; height: 12px;"></i>
+              Delivered All
+            </button>
+          </div>
           <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; color: var(--text-main);">
             <thead>
               <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
@@ -2514,6 +2520,31 @@ function renderManifestHistoryTable() {
         }
       } catch (err) {
         showToast('Connection error', 'danger');
+      }
+    });
+  });
+
+  // Bind Deliver All button click
+  document.querySelectorAll('.btn-deliver-all').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation(); // Prevent accordion row toggle
+      const manifestId = btn.getAttribute('data-id');
+      if (confirm(`Are you sure you want to mark all parcels in manifest ${manifestId} as Delivered?`)) {
+        try {
+          const res = await apiFetch(`/api/manifests/${manifestId}/deliver-all`, {
+            method: 'PUT'
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`All parcels in manifest ${manifestId} marked as Delivered!`, 'success');
+            await loadData(); // Reload scans to keep stats updated
+            loadManifestHistory(); // Reload history log
+          } else {
+            showToast(data.message || 'Failed to update all parcels status', 'danger');
+          }
+        } catch (err) {
+          showToast('Connection error', 'danger');
+        }
       }
     });
   });
