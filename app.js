@@ -2528,7 +2528,8 @@ function renderManifestHistoryTable() {
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(`Status of parcel ${trackingId} updated to: ${status}`, 'success');
-          // Reload logs history to update overall progress badges and selections
+          // Reload scans AND logs history to update overall progress badges and selections instantly
+          await loadData();
           loadManifestHistory();
         } else {
           showToast(data.message || 'Failed to update status', 'danger');
