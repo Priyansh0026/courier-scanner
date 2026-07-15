@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupManifestHistoryFilters();
   setupCourierConfig(); // Custom Courier Manager setup
   setupDeepTracking(); // Deep Tracking Audit setup
+  setupAnalyticsFilters(); // Analytics Date Filter setup
 
   // Initialize Focus Lock
   manageFocusLock();
@@ -877,6 +878,12 @@ function renderAll() {
   updateStats();
   renderLoadTable();
   updateManifestPanel();
+
+  // If currently viewing Analytics, update the charts in real-time
+  const activeTab = document.querySelector('.tab-pane.active');
+  if (activeTab && activeTab.id === 'tab-analytics') {
+    renderCharts();
+  }
 }
 
 function updateStats() {
@@ -1652,7 +1659,15 @@ function renderCharts() {
   });
   dataMap['other'] = { name: 'Other', count: 0, weight: 0, color: '#64748b' };
 
-  scans.forEach(s => {
+  // Date Filter logic for Analytics
+  const filterDateVal = document.getElementById('analytics-filter-date') ? document.getElementById('analytics-filter-date').value : '';
+  let filteredScans = scans;
+  if (filterDateVal) {
+    const targetDateStr = new Date(filterDateVal).toDateString();
+    filteredScans = scans.filter(s => s.timestamp && new Date(s.timestamp).toDateString() === targetDateStr);
+  }
+
+  filteredScans.forEach(s => {
     const key = dataMap[s.courierId] ? s.courierId : 'other';
     dataMap[key].count++;
     dataMap[key].weight += s.weight;
@@ -1663,7 +1678,7 @@ function renderCharts() {
   const weights = [];
   const colors = [];
   const breakdownRows = [];
-  const totalScans = scans.length;
+  const totalScans = filteredScans.length;
 
   for (const key in dataMap) {
     const item = dataMap[key];
@@ -2908,5 +2923,31 @@ async function openParcelHistoryModal(trackingId) {
 
   timelineContainer.innerHTML = timelineHTML;
   lucide.createIcons();
+}
+
+function setupAnalyticsFilters() {
+  const dateInput = document.getElementById('analytics-filter-date');
+  const todayBtn = document.getElementById('btn-analytics-today');
+  const clearBtn = document.getElementById('btn-analytics-clear');
+
+  if (!dateInput) return;
+
+  // Set default to today (YYYY-MM-DD)
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  dateInput.value = todayStr;
+
+  dateInput.addEventListener('change', () => {
+    renderCharts();
+  });
+
+  todayBtn.addEventListener('click', () => {
+    dateInput.value = todayStr;
+    renderCharts();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    dateInput.value = '';
+    renderCharts();
+  });
 }
 
