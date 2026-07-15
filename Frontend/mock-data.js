@@ -37,7 +37,7 @@ const DEFAULT_COURIER_PARTNERS = [
     name: 'The Professional',
     logo: '<img src="professional_logo.svg" style="width: 18px; height: 18px; border-radius: 2px; object-fit: contain; vertical-align: middle; margin-right: 4px;">',
     color: '#0F75BC',
-    regex: /^[A-Z]{3}\d{9}$/i,
+    regex: /^[A-Z]{3}\d{7,10}$/i,
     placeholder: 'e.g. KNP250001196'
   },
   {
@@ -98,12 +98,14 @@ function initCourierPartners() {
           COURIER_PARTNERS.push(def);
           updated = true;
         } else {
-          // Force upgrade shreemaruti if using old logo or regex pattern
+          // Force upgrade shreemaruti / professional if using old logo or regex patterns
           const existing = COURIER_PARTNERS[existingIdx];
           const isOutdatedMaruti = def.id === 'shreemaruti' && 
             (existing.logo === '🏎️' || !existing.regex.toString().includes('14'));
+          const isOutdatedProfessional = def.id === 'professional' &&
+            !existing.regex.toString().includes('7,10');
           
-          if (isOutdatedMaruti) {
+          if (isOutdatedMaruti || isOutdatedProfessional) {
             COURIER_PARTNERS[existingIdx] = def;
             updated = true;
           }
