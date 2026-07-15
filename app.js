@@ -135,6 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const isActiveSession = localStorage.getItem('jcms_active_session') === 'true';
     if (isActiveSession) {
       try {
+        // Re-hydrate local scans from localStorage before merging to prevent overwriting other tabs' offline items
+        const localScans = localStorage.getItem('cargo_scans');
+        if (localScans) {
+          try {
+            scans = JSON.parse(localScans);
+          } catch (e) {
+            console.warn('Failed to parse cargo_scans in poll:', e.message);
+          }
+        }
+
         const res = await apiFetch('/api/scans');
         const data = await res.json();
         if (res.ok && data.success) {
@@ -250,6 +260,16 @@ window.addEventListener('online', syncOfflineQueue);
 
 // Manage state with MySQL database API loading
 async function loadData() {
+  // Re-hydrate local scans from localStorage first so we don't lose local offline items
+  const localScans = localStorage.getItem('cargo_scans');
+  if (localScans) {
+    try {
+      scans = JSON.parse(localScans);
+    } catch (e) {
+      console.warn('Failed to parse cargo_scans on loadData:', e.message);
+    }
+  }
+
   try {
     const res = await apiFetch('/api/scans');
     const data = await res.json();
@@ -700,7 +720,7 @@ function addScannedItem(trackingId, courierId, weight, notes) {
   }
 
   const newScan = {
-    id: 'TXN-' + Math.floor(10000 + Math.random() * 90000),
+    id: 'TXN-' + Date.now() + '-' + Math.floor(100000 + Math.random() * 900000),
     trackingId: trackingId,
     courierId: finalCourierId,
     weight: parseFloat(weight) || 0.50,
@@ -767,7 +787,7 @@ function setupBulkImport() {
       }
 
       const item = {
-        id: 'TXN-' + Math.floor(10000 + Math.random() * 90000),
+        id: 'TXN-' + Date.now() + '-' + Math.floor(100000 + Math.random() * 900000) + '-' + addedCount,
         trackingId: trackingId,
         courierId: finalCourierId,
         weight: chosenWeight,
