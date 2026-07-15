@@ -22,7 +22,8 @@ const manifestSchema = new mongoose.Schema({
       trackingId: { type: String, required: true },
       courierId: { type: String, required: true },
       weight: { type: Number, required: true },
-      status: { type: String, enum: ['Pending', 'Delivered'], default: 'Pending' }
+      status: { type: String, enum: ['Pending', 'Delivered'], default: 'Pending' },
+      signedCopy: { type: String, default: null }
     }
   ],
   status: {

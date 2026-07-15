@@ -228,4 +228,75 @@ router.put('/:id/deliver-all', async (req, res) => {
   }
 });
 
+// 9. PUT /api/manifests/:manifestId/parcels/:trackingId/signed-copy - Upload signed copy for an individual parcel
+router.put('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) => {
+  try {
+    const { signedCopy } = req.body;
+    const { manifestId, trackingId } = req.params;
+
+    if (!signedCopy || !signedCopy.startsWith('data:image/')) {
+      return res.status(400).json({ success: false, message: 'Invalid image format. Base64 data URI required.' });
+    }
+
+    // 1. Update Manifest parcel subdocument
+    const manifest = await Manifest.findOneAndUpdate(
+      { id: manifestId, user: req.user._id, 'parcels.trackingId': trackingId },
+      { $set: { 'parcels.$.signedCopy': signedCopy } },
+      { new: true }
+    );
+
+    if (!manifest) {
+      return res.status(404).json({ success: false, message: 'Manifest or parcel not found.' });
+    }
+
+    // 2. Synchronize scan record status in Scan collection
+    await Scan.findOneAndUpdate(
+      { trackingId, user: req.user._id },
+      { signedCopy }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Parcel signed copy uploaded successfully!',
+      manifest
+    });
+  } catch (err) {
+    console.error('[JCMS Manifest Route] Update parcel signed copy error:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to upload parcel signed copy.' });
+  }
+});
+
+// 10. DELETE /api/manifests/:manifestId/parcels/:trackingId/signed-copy - Remove signed copy for an individual parcel
+router.delete('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) => {
+  try {
+    const { manifestId, trackingId } = req.params;
+
+    // 1. Update Manifest parcel subdocument to null
+    const manifest = await Manifest.findOneAndUpdate(
+      { id: manifestId, user: req.user._id, 'parcels.trackingId': trackingId },
+      { $set: { 'parcels.$.signedCopy': null } },
+      { new: true }
+    );
+
+    if (!manifest) {
+      return res.status(404).json({ success: false, message: 'Manifest or parcel not found.' });
+    }
+
+    // 2. Synchronize scan record status in Scan collection to null
+    await Scan.findOneAndUpdate(
+      { trackingId, user: req.user._id },
+      { signedCopy: null }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Parcel signed copy removed successfully!',
+      manifest
+    });
+  } catch (err) {
+    console.error('[JCMS Manifest Route] Delete parcel signed copy error:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to remove parcel signed copy.' });
+  }
+});
+
 module.exports = router;

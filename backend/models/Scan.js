@@ -35,6 +35,10 @@ const ScanSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
+  },
+  signedCopy: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 

@@ -2177,6 +2177,28 @@ function performDeepTrackingSearch(trackingId) {
     }
   }
 
+  // 5. Signed Individual Document Copy
+  const individualSignedContainer = document.getElementById('dt-individual-signed-container');
+  if (individualSignedContainer) {
+    const pDoc = manifest ? manifest.parcels.find(p => p.trackingId === scanItem.trackingId) : null;
+    const docSignedCopy = scanItem.signedCopy || (pDoc ? pDoc.signedCopy : null);
+    
+    if (docSignedCopy) {
+      individualSignedContainer.innerHTML = `
+        <div style="margin-top: 8px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; max-width: 320px; background-color: var(--card-bg-light); box-shadow: var(--shadow-sm);">
+          <img src="${docSignedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="window.open('${docSignedCopy}', '_blank')" title="Click to view full image">
+          <div style="padding: 8px; text-align: center; border-top: 1px solid var(--border-color); background-color: var(--bg-primary);">
+            <a href="${docSignedCopy}" target="_blank" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="external-link" style="width:14px; height:14px;"></i> Open in New Tab
+            </a>
+          </div>
+        </div>
+      `;
+    } else {
+      individualSignedContainer.innerHTML = `<span style="color: var(--text-muted); font-weight: 700;">No document copy uploaded</span>`;
+    }
+  }
+
   lucide.createIcons();
 }
 
@@ -2443,6 +2465,25 @@ function renderManifestHistoryTable() {
         deliveryTimeStr = new Date(deliveryTimeRaw).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
       }
 
+      // Individual parcel signed copy column
+      const signedCopyHtml = p.signedCopy ? `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <a href="${p.signedCopy}" target="_blank" class="icon-btn" title="View Signed Copy (New Tab)" style="border-color: rgba(34, 197, 94, 0.2); color: var(--success); display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid; border-radius: 4px;">
+            <i data-lucide="image" style="width: 12px; height: 12px;"></i>
+          </a>
+          <button class="icon-btn remove-parcel-signed-btn" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" title="Remove Signed Copy" style="border-color: rgba(239, 68, 68, 0.2); color: var(--danger); width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+          </button>
+        </div>
+      ` : `
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <button class="icon-btn upload-parcel-signed-btn" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" title="Upload Signed Copy" style="border-color: rgba(99, 102, 241, 0.2); color: var(--color-primary); width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+            <i data-lucide="upload-cloud" style="width: 12px; height: 12px;"></i>
+          </button>
+          <input type="file" class="parcel-upload-input" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" accept="image/*" style="display:none;">
+        </div>
+      `;
+
       return `
         <tr style="border-bottom: 1px solid rgba(226, 232, 240, 0.4);">
           <td class="tracking-cell" style="padding: 8px 10px; font-family: monospace; font-weight:600; font-size:12px;">${p.trackingId}</td>
@@ -2450,6 +2491,7 @@ function renderManifestHistoryTable() {
           <td style="padding: 8px 10px; color: var(--text-muted);">${scanTimeStr}</td>
           <td style="padding: 8px 10px; color: var(--text-muted);">${deliveryTimeStr}</td>
           <td class="weight-col" style="padding: 8px 10px;">${p.weight.toFixed(2)} kg</td>
+          <td style="padding: 8px 10px; text-align: center;">${signedCopyHtml}</td>
           <td style="padding: 8px 10px; text-align: right;">
             <select class="parcel-status-select" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" style="height: 24px; padding: 2px 8px; font-size: 11px; font-weight:600; border-radius: 4px; border-color: var(--border-color); color:var(--text-main); background: var(--card-bg); cursor: pointer;">
               ${selectOptions}
@@ -2477,11 +2519,12 @@ function renderManifestHistoryTable() {
                 <th style="padding: 6px 10px;">Scanned At</th>
                 <th style="padding: 6px 10px;">Delivered At</th>
                 <th class="weight-col" style="padding: 6px 10px;">Weight</th>
+                <th style="padding: 6px 10px; text-align: center;">Signed Copy</th>
                 <th style="padding: 6px 10px; text-align: right;">Status</th>
               </tr>
             </thead>
             <tbody>
-              ${parcelRows || '<tr><td colspan="6" style="text-align:center; padding:10px;">No parcels in this manifest.</td></tr>'}
+              ${parcelRows || '<tr><td colspan="7" style="text-align:center; padding:10px;">No parcels in this manifest.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -2557,6 +2600,75 @@ function renderManifestHistoryTable() {
             loadManifestHistory(); // Reload history log
           } else {
             showToast(data.message || 'Failed to update all parcels status', 'danger');
+          }
+        } catch (err) {
+          showToast('Connection error', 'danger');
+        }
+      }
+    });
+  });
+
+  // Bind parcel upload signed copy click
+  document.querySelectorAll('.upload-parcel-signed-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const manifestId = btn.getAttribute('data-manifest-id');
+      const trackingId = btn.getAttribute('data-tracking-id');
+      const input = document.querySelector(`.parcel-upload-input[data-manifest-id="${manifestId}"][data-tracking-id="${trackingId}"]`);
+      if (input) input.click();
+    });
+  });
+
+  // Bind parcel file input changes
+  document.querySelectorAll('.parcel-upload-input').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const manifestId = input.getAttribute('data-manifest-id');
+      const trackingId = input.getAttribute('data-tracking-id');
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result;
+        try {
+          const res = await apiFetch(`/api/manifests/${manifestId}/parcels/${trackingId}/signed-copy`, {
+            method: 'PUT',
+            body: JSON.stringify({ signedCopy: base64 })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`Signed copy uploaded for parcel ${trackingId}!`, 'success');
+            await loadData();
+            loadManifestHistory();
+          } else {
+            showToast(data.message || 'Upload failed', 'danger');
+          }
+        } catch (err) {
+          showToast('Connection error', 'danger');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Bind parcel remove signed copy click
+  document.querySelectorAll('.remove-parcel-signed-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const manifestId = btn.getAttribute('data-manifest-id');
+      const trackingId = btn.getAttribute('data-tracking-id');
+      if (confirm(`Remove signed copy for parcel ${trackingId}?`)) {
+        try {
+          const res = await apiFetch(`/api/manifests/${manifestId}/parcels/${trackingId}/signed-copy`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`Signed copy removed for parcel ${trackingId}.`, 'info');
+            await loadData();
+            loadManifestHistory();
+          } else {
+            showToast(data.message || 'Failed to remove', 'danger');
           }
         } catch (err) {
           showToast('Connection error', 'danger');
