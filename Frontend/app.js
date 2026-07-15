@@ -2989,8 +2989,57 @@ function setupManifestHistoryFilters() {
     driverSelect.value = '';
     startDate.value = '';
     endDate.value = '';
+    
+    // Clear lookup input and badge
+    const lookupInput = document.getElementById('driver-pending-lookup-input');
+    const resultBadge = document.getElementById('driver-lookup-result-badge');
+    if (lookupInput) lookupInput.value = '';
+    if (resultBadge) resultBadge.style.display = 'none';
+
     renderManifestHistoryTable();
   });
+
+  // Driver Pending Lookup Logic
+  const lookupInput = document.getElementById('driver-pending-lookup-input');
+  const lookupBtn = document.getElementById('btn-driver-pending-lookup');
+  const resultBadge = document.getElementById('driver-lookup-result-badge');
+  const pendingCountEl = document.getElementById('driver-lookup-pending-count');
+
+  const doLookup = () => {
+    const driverName = lookupInput.value.trim().toLowerCase();
+    if (!driverName) {
+      resultBadge.style.display = 'none';
+      return;
+    }
+
+    let pendingCount = 0;
+    manifestsHistoryList.forEach(m => {
+      if (m.driverName && m.driverName.trim().toLowerCase().includes(driverName)) {
+        if (m.parcels) {
+          m.parcels.forEach(p => {
+            if (p.status !== 'Delivered') {
+              pendingCount++;
+            }
+          });
+        }
+      }
+    });
+
+    pendingCountEl.textContent = pendingCount;
+    resultBadge.style.display = 'inline-flex';
+    
+    // Animate badge slightly
+    resultBadge.style.transform = 'scale(1.08)';
+    setTimeout(() => resultBadge.style.transform = 'scale(1)', 120);
+  };
+
+  if (lookupInput) {
+    lookupInput.addEventListener('input', doLookup);
+    lookupInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') doLookup();
+    });
+  }
+  if (lookupBtn) lookupBtn.addEventListener('click', doLookup);
 }
 
 // Modal closing event listeners for history log

@@ -445,15 +445,30 @@
                     <option value="">All Employees</option>
                   </select>
                 </div>
+
+                <!-- Quick Pending Look Up Input -->
+                <div style="flex: 1.2; min-width: 250px; border-left: 2px dashed var(--border-color); padding-left: 15px; display: flex; flex-direction: column; gap: 6px;">
+                  <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Driver Pending Lookup</label>
+                  <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                    <input type="text" id="driver-pending-lookup-input" placeholder="Type driver name..." style="flex: 1; height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 13px; font-weight: 600; outline: none;">
+                    <button class="btn btn-primary" id="btn-driver-pending-lookup" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; width: 36px; padding: 0;" title="Search pending count">
+                      <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                    </button>
+                    <div id="driver-lookup-result-badge" style="display: none; height: 36px; padding: 0 12px; border-radius: 6px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); font-size: 12px; font-weight: 700; align-items: center; gap: 4px; transition: transform 0.15s ease-out; white-space: nowrap;">
+                      <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
+                      <span>Pending: <strong id="driver-lookup-pending-count">0</strong></span>
+                    </div>
+                  </div>
+                </div>
                 
                 <!-- Start Date Input -->
-                <div style="width: 150px;">
+                <div style="width: 140px;">
                   <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Start Date</label>
                   <input type="date" id="filter-history-start-date" style="width: 100%; height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 13px; font-weight: 500;">
                 </div>
 
                 <!-- End Date Input -->
-                <div style="width: 150px;">
+                <div style="width: 140px;">
                   <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">End Date</label>
                   <input type="date" id="filter-history-end-date" style="width: 100%; height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 13px; font-weight: 500;">
                 </div>
