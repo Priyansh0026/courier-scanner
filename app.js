@@ -153,8 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {
         console.warn('[JCMS Polling Sync Error]:', e.message);
       }
-    }
-  }, 8000);
+  }, 12000);
 });
 
 function updateDate() {
