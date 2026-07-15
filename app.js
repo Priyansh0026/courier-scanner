@@ -2182,9 +2182,9 @@ function performDeepTrackingSearch(trackingId) {
     if (manifest && manifest.signedCopy) {
       signedContainer.innerHTML = `
         <div style="margin-top: 8px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; max-width: 320px; background-color: var(--card-bg-light); box-shadow: var(--shadow-sm);">
-          <img src="${manifest.signedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="window.open('${manifest.signedCopy}', '_blank')" title="Click to view full image">
+          <img src="${manifest.signedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="openBase64ImageInNewTab(this.src, 'Signed Manifest Copy')" title="Click to view full image">
           <div style="padding: 8px; text-align: center; border-top: 1px solid var(--border-color); background-color: var(--bg-primary);">
-            <a href="${manifest.signedCopy}" target="_blank" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <a href="javascript:void(0)" onclick="openBase64ImageInNewTab('${manifest.signedCopy}', 'Signed Manifest Copy')" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
               <i data-lucide="external-link" style="width:14px; height:14px;"></i> Open in New Tab
             </a>
           </div>
@@ -2206,9 +2206,9 @@ function performDeepTrackingSearch(trackingId) {
     if (docSignedCopy) {
       individualSignedContainer.innerHTML = `
         <div style="margin-top: 8px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; max-width: 320px; background-color: var(--card-bg-light); box-shadow: var(--shadow-sm);">
-          <img src="${docSignedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="window.open('${docSignedCopy}', '_blank')" title="Click to view full image">
+          <img src="${docSignedCopy}" style="width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; cursor: pointer;" onclick="openBase64ImageInNewTab(this.src, 'Signed Document Copy')" title="Click to view full image">
           <div style="padding: 8px; text-align: center; border-top: 1px solid var(--border-color); background-color: var(--bg-primary);">
-            <a href="${docSignedCopy}" target="_blank" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <a href="javascript:void(0)" onclick="openBase64ImageInNewTab('${docSignedCopy}', 'Signed Document Copy')" style="font-size: 12px; font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
               <i data-lucide="external-link" style="width:14px; height:14px;"></i> Open in New Tab
             </a>
           </div>
@@ -2306,6 +2306,58 @@ function showToast(message, type = 'success') {
       }
     }, 300);
   }, 4000);
+}
+
+// Bypasses browser restriction blocking direct window.open on Base64 image URIs
+function openBase64ImageInNewTab(base64Str, title = 'Image Viewer') {
+  const newTab = window.open();
+  if (!newTab) {
+    alert('Pop-up blocked! Please allow pop-ups for this website.');
+    return;
+  }
+  newTab.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          body {
+            margin: 0;
+            background: #0b1528;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+          img {
+            max-width: 95%;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          }
+          .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+            font-weight: 600;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="toolbar">JCMS Document Proof</div>
+        <img src="${base64Str}" alt="Signed Copy">
+      </body>
+    </html>
+  `);
+  newTab.document.close();
 }
 
 // =============================================================
@@ -2448,7 +2500,7 @@ function renderManifestHistoryTable() {
           </button>
           
           ${m.signedCopy ? `
-            <a href="${m.signedCopy}" target="_blank" class="icon-btn view-signed-btn" title="View Signed Copy (New Tab)" style="border-color: rgba(34, 197, 94, 0.2); color: var(--success); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid; border-radius: 6px;">
+            <a href="javascript:void(0)" onclick="openBase64ImageInNewTab('${m.signedCopy}', 'Signed Manifest Copy')" class="icon-btn view-signed-btn" title="View Signed Copy (New Tab)" style="border-color: rgba(34, 197, 94, 0.2); color: var(--success); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid; border-radius: 6px;">
               <i data-lucide="file-check-2" style="width:13px; height:13px;"></i>
             </a>
             <button class="icon-btn remove-signed-btn" data-id="${m.id}" title="Remove Signed Copy" style="border-color: rgba(239, 68, 68, 0.2); color: var(--danger);">
@@ -2495,7 +2547,7 @@ function renderManifestHistoryTable() {
       // Individual parcel signed copy column
       const signedCopyHtml = p.signedCopy ? `
         <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <a href="${p.signedCopy}" target="_blank" class="icon-btn" title="View Signed Copy (New Tab)" style="border-color: rgba(34, 197, 94, 0.2); color: var(--success); display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid; border-radius: 4px;">
+          <a href="javascript:void(0)" onclick="openBase64ImageInNewTab('${p.signedCopy}', 'Signed Document Copy')" class="icon-btn" title="View Signed Copy (New Tab)" style="border-color: rgba(34, 197, 94, 0.2); color: var(--success); display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid; border-radius: 4px;">
             <i data-lucide="image" style="width: 12px; height: 12px;"></i>
           </a>
           <button class="icon-btn remove-parcel-signed-btn" data-manifest-id="${m.id}" data-tracking-id="${p.trackingId}" title="Remove Signed Copy" style="border-color: rgba(239, 68, 68, 0.2); color: var(--danger); width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
