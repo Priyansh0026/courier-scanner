@@ -2391,9 +2391,16 @@ function renderManifestHistoryTable() {
     return;
   }
 
+  // Capture currently expanded manifest accordion IDs to maintain open state during refresh
+  const expandedIds = Array.from(tbody.querySelectorAll('.manifest-details-row'))
+    .filter(row => row.style.display !== 'none')
+    .map(row => row.getAttribute('data-id'));
+
   tbody.innerHTML = '';
   filteredList.forEach(m => {
     const date = new Date(m.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+    const isExpanded = expandedIds.includes(m.id);
+    const arrowStyle = isExpanded ? 'transform: rotate(90deg);' : '';
     
     // Main Row
     const trMain = document.createElement('tr');
@@ -2405,7 +2412,7 @@ function renderManifestHistoryTable() {
     trMain.innerHTML = `
       <td style="color:var(--text-muted); font-size:13px; font-weight:500;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <i data-lucide="chevron-right" class="accordion-arrow" style="width:14px; height:14px; transition: transform 0.2s;"></i>
+          <i data-lucide="chevron-right" class="accordion-arrow" style="width:14px; height:14px; transition: transform 0.2s; ${arrowStyle}"></i>
           ${date}
         </span>
       </td>
@@ -2446,7 +2453,7 @@ function renderManifestHistoryTable() {
     const trDetails = document.createElement('tr');
     trDetails.className = 'manifest-details-row';
     trDetails.setAttribute('data-id', m.id);
-    trDetails.style.display = 'none'; // Initially hidden
+    trDetails.style.display = isExpanded ? '' : 'none'; // Restore expanded state
     trDetails.style.backgroundColor = 'var(--card-bg-light)';
 
     const parcelRows = (m.parcels || []).map(p => {
