@@ -137,7 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await apiFetch('/api/scans');
         const data = await res.json();
         if (res.ok && data.success) {
-          scans = data.scans;
+          const incomingScans = data.scans || [];
+          const localOnly = scans.filter(local => 
+            !incomingScans.some(incoming => incoming.trackingId.toLowerCase() === local.trackingId.toLowerCase())
+          );
+          scans = [...localOnly, ...incomingScans];
           saveData();
           renderAll();
         }
@@ -154,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[JCMS Polling Sync Error]:', e.message);
       }
     }
-  }, 12000);
+  }, 8000);
 });
 
 function updateDate() {
@@ -249,8 +253,11 @@ async function loadData() {
     const res = await apiFetch('/api/scans');
     const data = await res.json();
     if (res.ok && data.success) {
-      scans = data.scans;
-      // Mirror locally in case of offline reload later
+      const incomingScans = data.scans || [];
+      const localOnly = scans.filter(local => 
+        !incomingScans.some(incoming => incoming.trackingId.toLowerCase() === local.trackingId.toLowerCase())
+      );
+      scans = [...localOnly, ...incomingScans];
       saveData();
     } else {
       console.warn('Failed to load scans from MySQL, loading from localStorage');
