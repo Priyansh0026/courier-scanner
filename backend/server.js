@@ -19,14 +19,55 @@ const selfsigned = require('selfsigned');
 
 const getLocalIPAddress = () => {
   const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
+  let fallbackIP = null;
+  let wifiOrEthernetIP = null;
+
+  // Sort network interface names to check physical adapters first
+  const names = Object.keys(interfaces).sort((a, b) => {
+    const aLower = a.toLowerCase();
+    const bLower = b.toLowerCase();
+    
+    // De-prioritize virtual adapters
+    const isAVirtual = aLower.includes('virtual') || aLower.includes('wsl') || aLower.includes('vbox') || aLower.includes('vmware') || aLower.includes('docker') || aLower.includes('hyper-v');
+    const isBVirtual = bLower.includes('virtual') || bLower.includes('wsl') || bLower.includes('vbox') || bLower.includes('vmware') || bLower.includes('docker') || bLower.includes('hyper-v');
+    
+    if (isAVirtual && !isBVirtual) return 1;
+    if (!isAVirtual && isBVirtual) return -1;
+    
+    // Prioritize Wi-Fi and physical LAN adapters
+    const isAWifi = aLower.includes('wi-fi') || aLower.includes('wlan') || aLower.includes('wireless') || aLower.includes('ethernet');
+    const isBWifi = bLower.includes('wi-fi') || bLower.includes('wlan') || bLower.includes('wireless') || bLower.includes('ethernet');
+    
+    if (isAWifi && !isBWifi) return -1;
+    if (!isAWifi && isBWifi) return 1;
+    
+    return 0;
+  });
+
+  for (const name of names) {
+    const nameLower = name.toLowerCase();
+    const isVirtual = nameLower.includes('virtual') || nameLower.includes('wsl') || nameLower.includes('vbox') || nameLower.includes('vmware') || nameLower.includes('docker') || nameLower.includes('hyper-v');
+    
     for (const net of interfaces[name]) {
       if (net.family === 'IPv4' && !net.internal) {
-        return net.address;
+        // If it's a known physical-sounding interface, return it immediately
+        if (!isVirtual && (nameLower.includes('wi-fi') || nameLower.includes('wlan') || nameLower.includes('wireless') || nameLower.includes('ethernet'))) {
+          return net.address;
+        }
+        
+        // Prioritize standard local networks (192.168.x.x) over 172.x.x.x (which is virtual/Docker/WSL)
+        if (!isVirtual && net.address.startsWith('192.168.')) {
+          wifiOrEthernetIP = net.address;
+        } else if (!isVirtual && net.address.startsWith('10.')) {
+          if (!wifiOrEthernetIP) wifiOrEthernetIP = net.address;
+        } else {
+          if (!fallbackIP) fallbackIP = net.address;
+        }
       }
     }
   }
-  return '127.0.0.1';
+  
+  return wifiOrEthernetIP || fallbackIP || '127.0.0.1';
 };
 
 const startServer = async () => {
