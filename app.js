@@ -3040,6 +3040,70 @@ function setupManifestHistoryFilters() {
     });
   }
   if (lookupBtn) lookupBtn.addEventListener('click', doLookup);
+
+  // Click on badge to open detailed pending modal
+  if (resultBadge) {
+    resultBadge.addEventListener('click', () => {
+      const driverName = lookupInput.value.trim();
+      const modal = document.getElementById('driver-pending-modal');
+      const modalName = document.getElementById('driver-pending-modal-name');
+      const tbody = document.getElementById('driver-pending-table-body');
+      const emptyDiv = document.getElementById('driver-pending-empty');
+      const countEl = document.getElementById('driver-pending-modal-count');
+
+      if (!modal || !tbody) return;
+
+      modalName.textContent = driverName;
+      tbody.innerHTML = '';
+      
+      let list = [];
+      manifestsHistoryList.forEach(m => {
+        if (m.driverName && m.driverName.trim().toLowerCase().includes(driverName.toLowerCase())) {
+          const dateStr = new Date(m.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+          if (m.parcels) {
+            m.parcels.forEach(p => {
+              if (p.status !== 'Delivered') {
+                list.push({
+                  manifestDate: dateStr,
+                  manifestId: m.id,
+                  trackingId: p.trackingId,
+                  courierId: p.courierId
+                });
+              }
+            });
+          }
+        }
+      });
+
+      if (list.length === 0) {
+        tbody.parentElement.style.display = 'none';
+        emptyDiv.style.display = 'block';
+      } else {
+        tbody.parentElement.style.display = 'table';
+        emptyDiv.style.display = 'none';
+        list.forEach(item => {
+          const courier = COURIER_PARTNERS.find(cp => cp.id === item.courierId) || { name: item.courierId, logo: '📦' };
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.manifestDate}</td>
+            <td style="font-family: monospace; font-weight: 600;">${item.manifestId}</td>
+            <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${item.trackingId}</td>
+            <td>
+              <span style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="font-size:16px;">${courier.logo || '📦'}</span>
+                ${courier.name}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      countEl.textContent = list.length;
+      modal.classList.add('active');
+      lucide.createIcons();
+    });
+  }
 }
 
 // Modal closing event listeners for history log
@@ -3070,6 +3134,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeManifestFooterBtn) {
     closeManifestFooterBtn.addEventListener('click', () => {
       manifestModal.classList.remove('active');
+    });
+  }
+
+  // Driver Pending modal close controls
+  const closeDriverPendingBtn = document.getElementById('btn-close-driver-pending');
+  const closeDriverPendingFooterBtn = document.getElementById('btn-close-driver-pending-footer');
+  const driverPendingModal = document.getElementById('driver-pending-modal');
+
+  if (closeDriverPendingBtn) {
+    closeDriverPendingBtn.addEventListener('click', () => {
+      driverPendingModal.classList.remove('active');
+    });
+  }
+  if (closeDriverPendingFooterBtn) {
+    closeDriverPendingFooterBtn.addEventListener('click', () => {
+      driverPendingModal.classList.remove('active');
     });
   }
 });

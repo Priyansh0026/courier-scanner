@@ -454,9 +454,9 @@
                     <button class="btn btn-primary" id="btn-driver-pending-lookup" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; width: 36px; padding: 0;" title="Search pending count">
                       <i data-lucide="search" style="width: 14px; height: 14px;"></i>
                     </button>
-                    <div id="driver-lookup-result-badge" style="display: none; height: 36px; padding: 0 12px; border-radius: 6px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); font-size: 12px; font-weight: 700; align-items: center; gap: 4px; transition: transform 0.15s ease-out; white-space: nowrap;">
+                    <div id="driver-lookup-result-badge" style="display: none; height: 36px; padding: 0 12px; border-radius: 6px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); font-size: 12px; font-weight: 700; align-items: center; gap: 6px; transition: transform 0.15s ease-out; white-space: nowrap; cursor: pointer;" title="Click to view list of pending parcels">
                       <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
-                      <span>Pending: <strong id="driver-lookup-pending-count">0</strong></span>
+                      <span>Pending: <strong id="driver-lookup-pending-count">0</strong> <span style="text-decoration: underline; font-size: 11px; margin-left: 2px; opacity: 0.9;">(View List)</span></span>
                     </div>
                   </div>
                 </div>
@@ -885,6 +885,41 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-close-manifest-details-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Driver Pending Parcels Details Modal -->
+  <div class="modal" id="driver-pending-modal">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3><i data-lucide="clock" style="color: var(--danger)"></i> Pending Parcels for: <span id="driver-pending-modal-name" style="color: var(--color-primary);">Driver</span></h3>
+        <button class="close-btn" id="btn-close-driver-pending">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 15px;">
+        <div class="table-container" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+          <table class="data-table" style="margin: 0; width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 25%">Manifest Date</th>
+                <th style="width: 25%">Manifest ID</th>
+                <th style="width: 25%">Tracking ID</th>
+                <th style="width: 25%">Courier Brand</th>
+              </tr>
+            </thead>
+            <tbody id="driver-pending-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div id="driver-pending-empty" style="display: none; text-align: center; padding: 30px; color: var(--text-muted);">
+          <i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--success); margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;"></i>
+          <p style="font-weight: 600; font-size: 14px;">All parcels delivered! No pending parcels found.</p>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);">Total Pending: <strong id="driver-pending-modal-count" style="color: var(--danger); font-size: 14px;">0</strong></span>
+        <button class="btn btn-secondary" id="btn-close-driver-pending-footer">Close</button>
       </div>
     </div>
   </div>
