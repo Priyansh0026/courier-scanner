@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.ok && data.success) {
           const incomingScans = data.scans || [];
           const localOnly = scans.filter(local => 
-            !incomingScans.some(incoming => incoming.trackingId.toLowerCase() === local.trackingId.toLowerCase())
+            !incomingScans.some(incoming => incoming.id === local.id)
           );
           scans = [...localOnly, ...incomingScans];
           saveData();
@@ -276,7 +276,7 @@ async function loadData() {
     if (res.ok && data.success) {
       const incomingScans = data.scans || [];
       const localOnly = scans.filter(local => 
-        !incomingScans.some(incoming => incoming.trackingId.toLowerCase() === local.trackingId.toLowerCase())
+        !incomingScans.some(incoming => incoming.id === local.id)
       );
       scans = [...localOnly, ...incomingScans];
       saveData();
