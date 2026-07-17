@@ -81,26 +81,28 @@ const startServer = async () => {
 
   const localIP = getLocalIPAddress();
 
-  // 2. Generate/Load SSL certificates
+  // 2. Generate/Load SSL certificates (Only for local wifi sharing, bypass in cloud production)
   const keyPath = path.join(__dirname, 'key.pem');
   const certPath = path.join(__dirname, 'cert.pem');
 
   let sslOptions = null;
-  try {
-    if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
-      console.log(`[JCMS SSL] Generating self-signed SSL certificates for IP ${localIP}...`);
-      const attrs = [{ name: 'commonName', value: localIP }];
-      const pems = await selfsigned.generate(attrs, { days: 365 });
-      fs.writeFileSync(keyPath, pems.private);
-      fs.writeFileSync(certPath, pems.cert);
-      console.log('[JCMS SSL] Certificates generated successfully!');
+  if (!process.env.PORT) {
+    try {
+      if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+        console.log(`[JCMS SSL] Generating self-signed SSL certificates for IP ${localIP}...`);
+        const attrs = [{ name: 'commonName', value: localIP }];
+        const pems = await selfsigned.generate(attrs, { days: 365 });
+        fs.writeFileSync(keyPath, pems.private);
+        fs.writeFileSync(certPath, pems.cert);
+        console.log('[JCMS SSL] Certificates generated successfully!');
+      }
+      sslOptions = {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath)
+      };
+    } catch (err) {
+      console.error('[JCMS SSL] Failed to generate/load SSL certificates:', err.message);
     }
-    sslOptions = {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath)
-    };
-  } catch (err) {
-    console.error('[JCMS SSL] Failed to generate/load SSL certificates:', err.message);
   }
 
   // 3. Start Dual Servers (HTTP on 5000 & HTTPS on 5001)
