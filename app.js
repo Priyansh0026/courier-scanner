@@ -703,13 +703,17 @@ function handleScannedBarcode(barcode) {
 
 // Core array insertion
 function addScannedItem(trackingId, courierId, weight, notes) {
-  // Check for duplicates
-  const isDuplicate = scans.some(item => item.trackingId.toLowerCase() === trackingId.toLowerCase());
+  // Check for duplicates (Only block if scanned on the same calendar day)
+  const todayStr = new Date().toDateString();
+  const isDuplicateToday = scans.some(item => 
+    item.trackingId.toLowerCase() === trackingId.toLowerCase() &&
+    new Date(item.timestamp).toDateString() === todayStr
+  );
   
-  if (isDuplicate) {
+  if (isDuplicateToday) {
     playBeep('duplicate');
     showScanFlashEffect('danger');
-    alert(`Tracking ID "${trackingId}" already scanned!`);
+    alert(`Tracking ID "${trackingId}" already scanned today!`);
     return false;
   }
 
@@ -774,9 +778,13 @@ function setupBulkImport() {
     const chosenWeight = parseFloat(defaultWeight.value) || 0.50;
 
     lines.forEach(trackingId => {
-      // Check duplicate
-      const isDup = scans.some(item => item.trackingId.toLowerCase() === trackingId.toLowerCase());
-      if (isDup) {
+      // Check duplicate (Only block if scanned on the same calendar day)
+      const todayStr = new Date().toDateString();
+      const isDupToday = scans.some(item => 
+        item.trackingId.toLowerCase() === trackingId.toLowerCase() &&
+        new Date(item.timestamp).toDateString() === todayStr
+      );
+      if (isDupToday) {
         duplicateCount++;
         return;
       }
