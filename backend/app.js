@@ -10,6 +10,9 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
+// Trust reverse proxy headers (e.g. X-Forwarded-For on Render/Vercel)
+app.set('trust proxy', 1);
+
 // 1. HTTP Security Headers (Helmet protects against common web vulnerabilities)
 app.use(
   helmet({
