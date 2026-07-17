@@ -71,13 +71,22 @@ const getLocalIPAddress = () => {
 };
 
 const startServer = async () => {
-  // 1. Database connection initialization
-  try {
-    await initializeDatabase();
-  } catch (err) {
-    console.error('[JCMS Server] Database initialization failed. Shutting down...');
-    process.exit(1);
-  }
+  // 1. Database connection initialization (Async in background, retry if fails, don't crash server)
+  initializeDatabase().catch(err => {
+    console.error('[JCMS Server] Initial database connection failed. Server will remain online to serve frontend and retry database connection in background.');
+    
+    // Set up a background reconnect timer
+    const retryInterval = setInterval(async () => {
+      console.log('[JCMS Server] Retrying database connection in background...');
+      try {
+        await initializeDatabase();
+        console.log('[JCMS Server] Database connection established successfully on retry!');
+        clearInterval(retryInterval);
+      } catch (retryErr) {
+        console.error(`[JCMS Server] Database reconnect attempt failed: ${retryErr.message}`);
+      }
+    }, 10000);
+  });
 
   const localIP = getLocalIPAddress();
 

@@ -98,6 +98,18 @@ app.use(sanitizeMongoQueries);
 // 6. Apply General API Rate Limiter
 app.use('/api', apiLimiter);
 
+// 6.5 Intercept API requests when MongoDB database connection is offline
+app.use('/api', (req, res, next) => {
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database is currently offline. Please configure your MONGODB_URI environment variable on the Render dashboard or whitelist your Render server IP on MongoDB Atlas.'
+    });
+  }
+  next();
+});
+
 // 7. Route Mounts
 app.use('/api', authRoutes);
 app.use('/api/scans', scanRoutes);
