@@ -20,16 +20,21 @@ mongoose.connection.on('error', (err) => {
 
 const seedOwnerAccount = async () => {
   try {
-    const ownerEmail = (process.env.OWNER_EMAIL || 'mansijain10503@gmail.com').toLowerCase();
-    const ownerPassword = process.env.OWNER_PASSWORD || 'Jaincourier@123';
-    const ownerMobile = process.env.OWNER_MOBILE || '9876543210';
+    const ownerEmail = (process.env.OWNER_EMAIL || '').toLowerCase().trim();
+    const ownerPassword = (process.env.OWNER_PASSWORD || '').trim();
+    const ownerMobile = (process.env.OWNER_MOBILE || '').trim();
+
+    if (!ownerEmail || !ownerPassword || !ownerMobile) {
+      console.warn('[JCMS DB Seeding] Seeding skipped: OWNER_EMAIL, OWNER_PASSWORD, or OWNER_MOBILE is not configured in .env');
+      return;
+    }
 
     // Clear any other user accounts to lock the site to this single owner
     await User.deleteMany({ email: { $ne: ownerEmail } });
 
     const exists = await User.findOne({ email: ownerEmail });
     if (!exists) {
-      console.log('[JCMS DB Seeding] No owner account found. Seeding default owner...');
+      console.log('[JCMS DB Seeding] No owner account found. Seeding owner...');
       
       await User.create({
         name: 'Jain Courier Owner',
@@ -41,8 +46,8 @@ const seedOwnerAccount = async () => {
         role: 'owner',
         status: 'active'
       });
-      console.log(`[JCMS DB Seeding] Default owner account created successfully!`);
-      console.log(`[JCMS DB Seeding] Email: ${ownerEmail} | Password: ${ownerPassword}`);
+      console.log(`[JCMS DB Seeding] Owner account created successfully!`);
+      console.log(`[JCMS DB Seeding] Email: ${ownerEmail}`);
     } else {
       // Force update password to match target configurations
       exists.password = ownerPassword;
