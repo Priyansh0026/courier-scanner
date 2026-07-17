@@ -1356,7 +1356,59 @@ tr:hover td {
   /* Setup A4 margins */
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm 12mm 15mm;
+    margin: 8mm 12mm 8mm 12mm;
+  }
+
+  /* Compact overrides for printing to prevent spillover */
+  .manifest-print-sheet {
+    padding: 0 !important;
+  }
+  .manifest-print-header {
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+    border-bottom-width: 1.5px !important;
+  }
+  .manifest-brand-info h2 {
+    font-size: 16px !important;
+  }
+  .manifest-brand-info p,
+  .manifest-meta p {
+    font-size: 10px !important;
+    margin-top: 2px !important;
+  }
+  .manifest-driver-info {
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+    font-size: 10px !important;
+  }
+  .manifest-print-table {
+    margin-bottom: 12px !important;
+  }
+  .manifest-print-table th {
+    padding: 5px 6px !important;
+    font-size: 10px !important;
+  }
+  .manifest-print-table td {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+  .barcode-text {
+    font-size: 28px !important;
+  }
+  .manifest-totals {
+    margin-bottom: 12px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  .manifest-sign-section {
+    margin-top: 15px !important;
+    gap: 30px !important;
+  }
+  .sign-block span {
+    font-size: 10px !important;
+  }
+  .sign-line {
+    margin-bottom: 4px !important;
   }
 
   .manifest-print-page {
