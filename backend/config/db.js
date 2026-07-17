@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+// Register connection event listeners for production monitoring
+mongoose.connection.on('connected', () => {
+  console.log('[JCMS DB Status] MongoDB Connected');
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('[JCMS DB Status] MongoDB Disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('[JCMS DB Status] MongoDB Reconnected');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('[JCMS DB Status] MongoDB Connection Error:', err);
+});
+
 const seedOwnerAccount = async () => {
   try {
     const ownerEmail = (process.env.OWNER_EMAIL || 'mansijain10503@gmail.com').toLowerCase();
