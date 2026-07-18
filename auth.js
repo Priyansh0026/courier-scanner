@@ -707,7 +707,8 @@ function setupFormsSubmission() {
     spinner.classList.remove('hidden');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50s timeout to handle Render cold starts
+
 
     try {
       const res = await fetch(`${API_BASE}/api/login`, {
