@@ -10,7 +10,7 @@ const getScans = async (req, res) => {
 
   try {
     // 1. Fetch manifests to determine active manifested tracking IDs
-    const manifests = await Manifest.find({ user: userId });
+    const manifests = await Manifest.find({});
     const manifestedTrackingIds = new Set();
     manifests.forEach(m => {
       if (m.parcels) {
@@ -21,7 +21,7 @@ const getScans = async (req, res) => {
     });
 
     // 2. Fetch all scans
-    let scans = await Scan.find({ user: userId }).sort({ timestamp: -1 });
+    let scans = await Scan.find({}).select('-signedCopy').sort({ timestamp: -1 });
 
     // 3. Find scans marked as Pending or Delivered but not in any manifest (orphaned scans)
     const orphanedTrackingIds = [];
@@ -34,11 +34,11 @@ const getScans = async (req, res) => {
     // 4. Revert orphaned scans back to 'scanned' in database
     if (orphanedTrackingIds.length > 0) {
       await Scan.updateMany(
-        { trackingId: { $in: orphanedTrackingIds }, user: userId },
+        { trackingId: { $in: orphanedTrackingIds } },
         { status: 'scanned' }
       );
       // Re-fetch scans to ensure consistency in response
-      scans = await Scan.find({ user: userId }).sort({ timestamp: -1 });
+      scans = await Scan.find({}).select('-signedCopy').sort({ timestamp: -1 });
     }
 
     return res.status(200).json({
@@ -111,7 +111,7 @@ const deleteScans = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    await Scan.deleteMany({ user: userId });
+    await Scan.deleteMany({});
 
     return res.status(200).json({
       success: true,
@@ -132,7 +132,7 @@ const updateScan = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    const scan = await Scan.findOne({ id, user: userId });
+    const scan = await Scan.findOne({ id });
     
     if (!scan) {
       return res.status(404).json({
@@ -167,7 +167,7 @@ const deleteScan = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    const scan = await Scan.findOneAndDelete({ id, user: userId });
+    const scan = await Scan.findOneAndDelete({ id });
     
     if (!scan) {
       return res.status(404).json({

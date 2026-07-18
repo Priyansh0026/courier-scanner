@@ -7,6 +7,49 @@ const { protect } = require('../middleware/authMiddleware');
 // All manifest routes require authentication
 router.use(protect);
 
+// 0. GET /api/manifests/export-csv - Export CSV of all manifests and scans
+router.get('/export-csv', async (req, res) => {
+  try {
+    const manifests = await Manifest.find({}).sort({ timestamp: -1 }).lean();
+    const scans = await Scan.find({}).lean();
+
+    const scanMap = new Map();
+    scans.forEach(s => {
+      scanMap.set(s.trackingId, s);
+    });
+
+    let csvContent = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    csvContent += 'Date & Time,Manifest ID,Driver Name,Tracking ID,Courier Service,Weight (kg),Status,Notes\n';
+
+    for (const m of manifests) {
+      const dateStr = m.timestamp ? new Date(m.timestamp).toLocaleString('en-US') : 'N/A';
+      const manifestId = m.id || 'N/A';
+      const driver = m.driverName || 'N/A';
+
+      if (m.parcels && m.parcels.length > 0) {
+        for (const p of m.parcels) {
+          const trackingId = p.trackingId || 'N/A';
+          const courier = p.courierId || 'N/A';
+          const weight = p.weight || '0';
+          const status = p.status || 'Pending';
+          
+          const rawScan = scanMap.get(trackingId);
+          const notes = rawScan && rawScan.notes ? rawScan.notes.replace(/"/g, '""') : '';
+
+          csvContent += `"${dateStr}","${manifestId}","${driver}","${trackingId}","${courier}","${weight}","${status}","${notes}"\n`;
+        }
+      }
+    }
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=JCMS_Manifest_Export.csv');
+    return res.status(200).send(csvContent);
+  } catch (err) {
+    console.error('[JCMS Manifest Route] Export CSV error:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to export CSV report.' });
+  }
+});
+
 // 1. POST /api/manifests - Create a new manifest record and update scans
 router.post('/', async (req, res) => {
   try {
@@ -17,7 +60,7 @@ router.post('/', async (req, res) => {
     }
 
     // Check if manifest ID already exists
-    const exists = await Manifest.findOne({ id, user: req.user._id });
+    const exists = await Manifest.findOne({ id });
     if (exists) {
       return res.status(409).json({ success: false, message: 'Manifest ID already logged.' });
     }
@@ -35,7 +78,7 @@ router.post('/', async (req, res) => {
     // Update status of individual scans to 'Pending' in DB
     const trackingIds = parcels.map(p => p.trackingId);
     await Scan.updateMany(
-      { trackingId: { $in: trackingIds }, user: req.user._id },
+      { trackingId: { $in: trackingIds } },
       { status: 'Pending' }
     );
 
@@ -53,7 +96,9 @@ router.post('/', async (req, res) => {
 // 2. GET /api/manifests - Get all manifest records (date-wise sorted newest first)
 router.get('/', async (req, res) => {
   try {
-    const manifests = await Manifest.find({ user: req.user._id }).sort({ timestamp: -1 });
+    const manifests = await Manifest.find({})
+      .select('-signedCopy -parcels.signedCopy')
+      .sort({ timestamp: -1 });
     return res.status(200).json({ success: true, manifests });
   } catch (err) {
     console.error('[JCMS Manifest Route] Fetch error:', err.message);
@@ -70,7 +115,7 @@ router.put('/:id/status', async (req, res) => {
     }
 
     const manifest = await Manifest.findOneAndUpdate(
-      { id: req.params.id, user: req.user._id },
+      { id: req.params.id },
       { status },
       { new: true }
     );
@@ -89,7 +134,7 @@ router.put('/:id/status', async (req, res) => {
 // 4. DELETE /api/manifests/:id - Delete a manifest from history and release its scans back to 'scanned'
 router.delete('/:id', async (req, res) => {
   try {
-    const manifest = await Manifest.findOne({ id: req.params.id, user: req.user._id });
+    const manifest = await Manifest.findOne({ id: req.params.id });
     if (!manifest) {
       return res.status(404).json({ success: false, message: 'Manifest not found.' });
     }
@@ -97,7 +142,7 @@ router.delete('/:id', async (req, res) => {
     // Reset status of all parcels back to 'scanned' in DB
     const trackingIds = manifest.parcels.map(p => p.trackingId);
     await Scan.updateMany(
-      { trackingId: { $in: trackingIds }, user: req.user._id },
+      { trackingId: { $in: trackingIds } },
       { status: 'scanned' }
     );
 
@@ -120,7 +165,7 @@ router.put('/:id/signed-copy', async (req, res) => {
     }
 
     const manifest = await Manifest.findOneAndUpdate(
-      { id: req.params.id, user: req.user._id },
+      { id: req.params.id },
       { signedCopy },
       { new: true }
     );
@@ -140,7 +185,7 @@ router.put('/:id/signed-copy', async (req, res) => {
 router.delete('/:id/signed-copy', async (req, res) => {
   try {
     const manifest = await Manifest.findOneAndUpdate(
-      { id: req.params.id, user: req.user._id },
+      { id: req.params.id },
       { signedCopy: null },
       { new: true }
     );
@@ -156,7 +201,7 @@ router.delete('/:id/signed-copy', async (req, res) => {
   }
 });
 
-// 7. PUT /api/manifests/:manifestId/parcels/:trackingId/status - Update status of an individual package/document inside a manifest
+// 7. PUT /api/manifests/:manifestId/parcels/:trackingId/status - Update status of an individual package inside a manifest
 router.put('/:manifestId/parcels/:trackingId/status', async (req, res) => {
   try {
     const { status } = req.body;
@@ -168,7 +213,7 @@ router.put('/:manifestId/parcels/:trackingId/status', async (req, res) => {
 
     // 1. Update the status inside the Manifest's parcels array
     const manifest = await Manifest.findOneAndUpdate(
-      { id: manifestId, user: req.user._id, 'parcels.trackingId': trackingId },
+      { id: manifestId, 'parcels.trackingId': trackingId },
       { $set: { 'parcels.$.status': status } },
       { new: true }
     );
@@ -179,7 +224,7 @@ router.put('/:manifestId/parcels/:trackingId/status', async (req, res) => {
 
     // 2. Synchronize scan record status in Scan collection
     await Scan.findOneAndUpdate(
-      { trackingId, user: req.user._id },
+      { trackingId },
       { status }
     );
 
@@ -197,7 +242,7 @@ router.put('/:manifestId/parcels/:trackingId/status', async (req, res) => {
 // 8. PUT /api/manifests/:id/deliver-all - Mark all parcels in a manifest as Delivered
 router.put('/:id/deliver-all', async (req, res) => {
   try {
-    const manifest = await Manifest.findOne({ id: req.params.id, user: req.user._id });
+    const manifest = await Manifest.findOne({ id: req.params.id });
     if (!manifest) {
       return res.status(404).json({ success: false, message: 'Manifest not found.' });
     }
@@ -206,14 +251,13 @@ router.put('/:id/deliver-all', async (req, res) => {
     manifest.parcels.forEach(p => {
       p.status = 'Delivered';
     });
-    // Set overall manifest status to Delivered too
     manifest.status = 'Delivered';
     await manifest.save();
 
     // 2. Update scan records in Scan collection to 'Delivered'
     const trackingIds = manifest.parcels.map(p => p.trackingId);
     await Scan.updateMany(
-      { trackingId: { $in: trackingIds }, user: req.user._id },
+      { trackingId: { $in: trackingIds } },
       { status: 'Delivered' }
     );
 
@@ -240,7 +284,7 @@ router.put('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) => {
 
     // 1. Update Manifest parcel subdocument
     const manifest = await Manifest.findOneAndUpdate(
-      { id: manifestId, user: req.user._id, 'parcels.trackingId': trackingId },
+      { id: manifestId, 'parcels.trackingId': trackingId },
       { $set: { 'parcels.$.signedCopy': signedCopy } },
       { new: true }
     );
@@ -251,7 +295,7 @@ router.put('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) => {
 
     // 2. Synchronize scan record status in Scan collection
     await Scan.findOneAndUpdate(
-      { trackingId, user: req.user._id },
+      { trackingId },
       { signedCopy }
     );
 
@@ -273,7 +317,7 @@ router.delete('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) =
 
     // 1. Update Manifest parcel subdocument to null
     const manifest = await Manifest.findOneAndUpdate(
-      { id: manifestId, user: req.user._id, 'parcels.trackingId': trackingId },
+      { id: manifestId, 'parcels.trackingId': trackingId },
       { $set: { 'parcels.$.signedCopy': null } },
       { new: true }
     );
@@ -284,7 +328,7 @@ router.delete('/:manifestId/parcels/:trackingId/signed-copy', async (req, res) =
 
     // 2. Synchronize scan record status in Scan collection to null
     await Scan.findOneAndUpdate(
-      { trackingId, user: req.user._id },
+      { trackingId },
       { signedCopy: null }
     );
 

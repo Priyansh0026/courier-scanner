@@ -435,9 +435,15 @@
             <div class="card">
               <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
                 <h3><i data-lucide="history"></i> Manifest Records History</h3>
-                <button class="btn btn-secondary btn-sm" id="btn-refresh-manifest-history" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                  <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Refresh
-                </button>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary btn-sm" id="btn-export-manifest-csv" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; background-color: #22c55e; color: white; border: none;">
+                    <i data-lucide="download" style="width: 12px; height: 12px;"></i> Export CSV
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="btn-refresh-manifest-history" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Refresh
+                  </button>
+                </div>
+
               </div>
               
               <!-- FILTER CONTROLS ROW -->
