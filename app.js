@@ -148,11 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await apiFetch('/api/scans');
         const data = await res.json();
         if (res.ok && data.success) {
-          const incomingScans = data.scans || [];
-          const localOnly = scans.filter(local => 
-            !incomingScans.some(incoming => incoming.id === local.id)
-          );
-          scans = [...localOnly, ...incomingScans];
+          scans = data.scans || [];
           saveData();
           renderAll();
         }
@@ -274,11 +270,7 @@ async function loadData() {
     const res = await apiFetch('/api/scans');
     const data = await res.json();
     if (res.ok && data.success) {
-      const incomingScans = data.scans || [];
-      const localOnly = scans.filter(local => 
-        !incomingScans.some(incoming => incoming.id === local.id)
-      );
-      scans = [...localOnly, ...incomingScans];
+      scans = data.scans || [];
       saveData();
     } else {
       console.warn('Failed to load scans from MySQL, loading from localStorage');

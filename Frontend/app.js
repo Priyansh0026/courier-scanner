@@ -148,11 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await apiFetch('/api/scans');
         const data = await res.json();
         if (res.ok && data.success) {
-          const incomingScans = data.scans || [];
-          const localOnly = scans.filter(local => 
-            !incomingScans.some(incoming => incoming.id === local.id)
-          );
-          scans = [...localOnly, ...incomingScans];
+          scans = data.scans || [];
           saveData();
           renderAll();
         }
@@ -274,11 +270,7 @@ async function loadData() {
     const res = await apiFetch('/api/scans');
     const data = await res.json();
     if (res.ok && data.success) {
-      const incomingScans = data.scans || [];
-      const localOnly = scans.filter(local => 
-        !incomingScans.some(incoming => incoming.id === local.id)
-      );
-      scans = [...localOnly, ...incomingScans];
+      scans = data.scans || [];
       saveData();
     } else {
       console.warn('Failed to load scans from MySQL, loading from localStorage');
@@ -832,11 +824,8 @@ const filterStatus = document.getElementById('filter-status');
 const filterDate = document.getElementById('filter-date');
 
 if (filterDate) {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  filterDate.value = `${yyyy}-${mm}-${dd}`;
+  // Let the date filter default to empty (All Dates) so scans from all dates are visible at once!
+  filterDate.value = '';
 }
 
 [searchInput, filterCourier, filterStatus, filterDate].forEach(el => {
