@@ -832,11 +832,8 @@ const filterStatus = document.getElementById('filter-status');
 const filterDate = document.getElementById('filter-date');
 
 if (filterDate) {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  filterDate.value = `${yyyy}-${mm}-${dd}`;
+  // Let the date filter default to empty (All Dates) so scans from all dates are visible at once!
+  filterDate.value = '';
 }
 
 [searchInput, filterCourier, filterStatus, filterDate].forEach(el => {
@@ -1427,8 +1424,45 @@ function setupManifestGenerator() {
     });
 
     document.getElementById('btn-refresh-manifest-history').addEventListener('click', loadManifestHistory);
+
+    const exportBtn = document.getElementById('btn-export-manifest-csv');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', async () => {
+        try {
+          const token = localStorage.getItem('jcms_token');
+          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
+          const API_BASE = isLocalhost ? ((window.location.origin.includes('5000') || window.location.origin.includes('5001')) ? '' : 'http://localhost:5000') : '';
+          
+          showToast('Generating CSV report from cloud...', 'warning');
+          const res = await fetch(`${API_BASE}/api/manifests/export-csv`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (!res.ok) {
+            showToast('Failed to export CSV report from server.', 'error');
+            return;
+          }
+          
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'JCMS_Manifest_Export.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          showToast('CSV Report downloaded successfully!', 'success');
+        } catch (err) {
+          showToast('Failed to export CSV: ' + err.message, 'error');
+        }
+      });
+    }
   }
 }
+
 
 function updateManifestPanel() {
   const container = document.getElementById('manifest-packages-container');
